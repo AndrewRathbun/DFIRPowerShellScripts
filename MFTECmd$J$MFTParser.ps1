@@ -39,6 +39,6 @@ if (!(Test-Path -Path $OutputFolder))
 
 $MFT = Get-ChildItem -Recurse -Path $TargetsFolder -Include '$MFT'
 $J = Get-ChildItem -Recurse -Path $TargetsFolder -Include '$J'
-$MFTECmd = 'C:\Users\AndrewSager\Desktop\EZ Tools\MFTECmd.exe'
+$MFTECmd = 'C:\Path\To\MFTECmd.exe' # Paste the file path to MFTECmd.exe here
 
 Start-Process -FilePath $MFTECmd -ArgumentList "-f $J -m $MFT --csv $OutputFolder"
