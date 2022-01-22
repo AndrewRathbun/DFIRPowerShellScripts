@@ -3,7 +3,7 @@
 		Searches for the $J and $MFT and then parses them together with MFTECmd to generate data within the ParentPath column in the CSV output.
 	
 	.DESCRIPTION
-		$J + $MFT = more verbose and useful $J CSV output with MFTECmd!
+		$J + $MFT = more verbose and useful $J CSV output with MFTECmd! This script will search recursively from the location you specify for $TargetFolder for $J and $MFT files. Please note, this MFTECmd command cannot handle multiple of each. Only one $J and one $MFT, ideally from the same system :)
 	
 	.PARAMETER TargetsFolder
 		Please specify a folder that contains a $J and $MFT to be parsed by MFTECmd
