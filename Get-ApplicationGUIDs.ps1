@@ -1,31 +1,31 @@
 <#
-	.NOTES
-	===========================================================================
-	 Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2022 v5.8.198
-	 Created on:   	1/30/2022 5:24 PM
-	 Created by:   	Andrew Rathbun
-	 Filename:     	Get-ApplicationGUIDs
-	===========================================================================
-	.DESCRIPTION
-		I don't take credit for this script. All credit goes to https://4sysops.com/archives/find-the-product-guid-of-installed-software-with-powershell/ for the body of the code. I simply turned it into a function and Out-File'd the results to disk.
-	.PURPOSE
-		The purpose of this script is to provide an easier way for DFIR examiners to acquire GUIDs for installed software for the purpose of contributing to https://github.com/EricZimmerman/JumpList/blob/master/JumpList/Resources/AppIDs.txt.
-	.GUIDANCE
-		Please note, there may be GUIDs that aren't populated with a name. Don't use those to contribute to the JumpList repo.
+|.NOTES
+|===========================================================================
+| Created with: |SAPIEN Technologies, Inc., PowerShell Studio 2022 v5.8.198
+| Created on:   |1/30/2022 5:24 PM
+| Created by:   |Andrew Rathbun
+| Filename:     |Get-ApplicationGUIDs
+|===========================================================================
+|.DESCRIPTION
+||I don't take credit for this script. All credit goes to https://4sysops.com/archives/find-the-product-guid-of-installed-software-with-powershell/ for the body of the code. I simply turned it into a function and Out-File'd the results to disk.
+|.PURPOSE
+||The purpose of this script is to provide an easier way for DFIR examiners to acquire GUIDs for installed software for the purpose of contributing to https://github.com/EricZimmerman/GuidMapping/blob/master/Resources/GuidToName.txt, which helps strengthen the output of Eric Zimmerman's shellbags parser.
+|.GUIDANCE
+||Please note, there may be GUIDs that aren't populated with a name. Don't use those to contribute to the GuidMapping repo. Also, you will need to remove the { } and the space between the GUID and Name values. That should be pretty easy using any sort of column mode/rectangular selections in a quality text editor.
 #>
 
 function Find-AppIDs
 {
-	[CmdletBinding()]
-	param ()
+|[CmdletBinding()]
+|param ()
 
-	$UninstallKeys = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall", "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
-	$null = New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS
-	$UninstallKeys += Get-ChildItem HKU: -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$' } | ForEach-Object { "HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall" }
-	foreach ($UninstallKey in $UninstallKeys)
-	{
-		Get-ChildItem -Path $UninstallKey -ErrorAction SilentlyContinue | Where { $_.PSChildName -match '^{[A-Z0-9]{8}-([A-Z0-9]{4}-){3}[A-Z0-9]{12}}$' } | Select-Object @{ n = 'GUID'; e = { $_.PSChildName } }, @{ n = 'Name'; e = { $_.GetValue('DisplayName') } }
-	}
+|$UninstallKeys = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall", "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+|$null = New-PSDrive -Name HKU -PSProvider Registry -Root Registry::HKEY_USERS
+|$UninstallKeys += Get-ChildItem HKU: -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'S-\d-\d+-(\d+-){1,14}\d+$' } | ForEach-Object { "HKU:\$($_.PSChildName)\Software\Microsoft\Windows\CurrentVersion\Uninstall" }
+|foreach ($UninstallKey in $UninstallKeys)
+|{
+||Get-ChildItem -Path $UninstallKey -ErrorAction SilentlyContinue | Where { $_.PSChildName -match '^{[A-Z0-9]{8}-([A-Z0-9]{4}-){3}[A-Z0-9]{12}}$' } | Select-Object @{ n = 'GUID'; e = { $_.PSChildName } }, @{ n = 'Name'; e = { $_.GetValue('DisplayName') } }
+|}
 }
 
 Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
@@ -33,8 +33,8 @@ Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
 # SIG # Begin signature block
 # MIIpSQYJKoZIhvcNAQcCoIIpOjCCKTYCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDa5vLZKJi1nMlb
-# beao+/4Z0vl55Xcl4rqJPmNe+h6jeqCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB2OQNEpY5j+959
+# lbzm95SeyS3D6EulsEuzl+Wb+UPJyKCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -135,23 +135,23 @@ Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIHaGJIqBFcjTf0hchofrZYvCUD75kSGjhmiI
-# c1GzI/3PMA0GCSqGSIb3DQEBAQUABIICACMCXd/3f0C3oKMEbWx4UWovbhdzlpJP
-# qVpm/QqEE3VDyVPFleAMAUU2APul7gGbZBQpYCEJEgD16PoprvhDwu40w7i6ICzk
-# ABQ0VT9LPUbwCj07QUtjyIuOmkl3IA4xwdFdmsPiQda7mZ9Qd47sXr5egnFNYFHF
-# rEhIcZ1HZ9FedTUJC/WM2NlZwwqwO4D9N4cnXXTlodTzo66+THTkv9OnydyN1J2F
-# VXqLWQGJfz+zkM/IIwLlInB7FcRUfiYj5nnxrM+fEIr9P4d9BljwMYswECjE3j8v
-# 9+PAxp3DUrhmBPGOEQL4u/Sk9jCrBgDBw0rZvoYaF3Xgv32gFATICtUIGkBi1EZ5
-# +/CiYRMkCyb6rH++YcDpCcSZtN9UfvGsVNagtxAQkQEMIXyOD+NyBwbkIEQJYH+3
-# s7y3weFI18r1GM/zic/5GLNUrhufWJy/FQQS5WLcKhs3S/KzLikPESaYF1dMlfqA
-# mUQC0EfXtf0NmPF/Nolm8XdODC5ZXRB49zNZRpXjEsN81jyxoOFDx0K4paNtB83v
-# nhp3gKn+cmObEh2s/zN72uZkkYa0SiYiMcD9E1cjnBsVEy8GHCTeJSkG8gcViXNJ
-# 9fR0uVroIPsCthIaUnbz7Ztd93hegaxKIzz0UM96jp7qmVlUtvutt76bADVCCMw0
-# CgpnvswuGBF3oYITgDCCE3wGCisGAQQBgjcDAwExghNsMIITaAYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIL+JC6++9zA6I4g9YiUH0RCcOxoWEcDMnXpF
+# h5JTp7LnMA0GCSqGSIb3DQEBAQUABIICADKpqOK0UF8Uo8ep6buSmSofeDEUuE9V
+# EADteR0NDdYgUvFOBWJIIRBa8GIqNKkIWyeAY2SHI/f2sgLrQVBzaYUii9FUec7u
+# DeZte1aEY8PdmGUSAzwuuNBdKKvwIxvxuHjmqrp8bOTOmytz7KWuAY3zbXwOujhY
+# UzSahdxN7h/LUMlnVGx0FHIVVy/TOaK9Tjtb4ly7SieHd3gJ3iBcgWlviBgvoNEB
+# TPTLqEjiL1mBJ5tQdCapdYBNvJaSNKteLOVsnxyAqUBT5nZc7hHr1rZzcJBOa+AR
+# h+27HHpyramZJJhuSdFh9SrdN0+mV8zyO40IaN6XJ/h/HUgs8E9B0Gie3Zp2/gn7
+# XXE4v74OywSS/mqBBZLs/4sn5su29UwacR6RqsVuPU5dlrOQ8tcz0mdI5MS0hKer
+# OaN2WMnkMnDNhSRIAN5IJeUXhDYswy0NwbdMa09gfLtKIKsFYFQZj3MILAAUAAta
+# obE2/0Qfi4TpVjjbJV9aQ30MxbdLiQ+DtZ37me+xbLJPS8/cFqakUSc/Kd+hsUnC
+# KQPdI0PuxOY+eE/J9S35ff7erMsGZQ/fAr6zezsCvOCBWdD4IQkDge+GpD8l4wjp
+# pvqBCbv3m2MIBTatCVJfk8+8jQqmLwD0dRtVeGujI3aKZC1uwjtDNi1HEvT5SgvC
+# bGZForJgtBfXoYITgDCCE3wGCisGAQQBgjcDAwExghNsMIITaAYJKoZIhvcNAQcC
 # oIITWTCCE1UCAQMxDzANBglghkgBZQMEAgIFADCCAQ0GCyqGSIb3DQEJEAEEoIH9
-# BIH6MIH3AgEBBgorBgEEAbIxAgEBMDEwDQYJYIZIAWUDBAIBBQAEIKlPYsxIsX+y
-# SE5ScayaDBAgIbuhXKkbvd+7S034lXq6AhUAwwedTvD2PV358Z2CKPgOzPWfvCAY
-# DzIwMjIwMTMxMTU1OTM3WqCBiqSBhzCBhDELMAkGA1UEBhMCR0IxGzAZBgNVBAgT
+# BIH6MIH3AgEBBgorBgEEAbIxAgEBMDEwDQYJYIZIAWUDBAIBBQAEIIjUF0utiLk8
+# RgGMm3QD3WBvcsUcrBS6DDmaiTCrg4kRAhUA+r0x9pHhamH6RmWd9yUgbNCXzDsY
+# DzIwMjIwMTMxMTcwNzAzWqCBiqSBhzCBhDELMAkGA1UEBhMCR0IxGzAZBgNVBAgT
 # EkdyZWF0ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMP
 # U2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0aWdvIFJTQSBUaW1lIFN0YW1w
 # aW5nIFNpZ25lciAjMqCCDfswggcHMIIE76ADAgECAhEAjHegAI/00bDGPZ86SION
@@ -233,23 +233,23 @@ Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
 # aGVzdGVyMRAwDgYDVQQHEwdTYWxmb3JkMRgwFgYDVQQKEw9TZWN0aWdvIExpbWl0
 # ZWQxJTAjBgNVBAMTHFNlY3RpZ28gUlNBIFRpbWUgU3RhbXBpbmcgQ0ECEQCMd6AA
 # j/TRsMY9nzpIg41rMA0GCWCGSAFlAwQCAgUAoIIBazAaBgkqhkiG9w0BCQMxDQYL
-# KoZIhvcNAQkQAQQwHAYJKoZIhvcNAQkFMQ8XDTIyMDEzMTE1NTkzN1owPwYJKoZI
-# hvcNAQkEMTIEMN87Q5YhRMryhmhXkVePgrqlkLDo+5LT1YxF3ieDUcSJhVWG2t4F
-# 8Sbn+RPY6gx2XjCB7QYLKoZIhvcNAQkQAgwxgd0wgdowgdcwFgQUlRE3EB2ILzG9
+# KoZIhvcNAQkQAQQwHAYJKoZIhvcNAQkFMQ8XDTIyMDEzMTE3MDcwM1owPwYJKoZI
+# hvcNAQkEMTIEMJ+2f55klQimNIhk+mnySg5HZGHRbKzHEvoIixu6mzecboIu0Thn
+# fZ1Nmcx4U3ATyDCB7QYLKoZIhvcNAQkQAgwxgd0wgdowgdcwFgQUlRE3EB2ILzG9
 # UT+UmtpMaK2MCPUwgbwEFALWW5Xig3DBVwCV+oj5I92Tf62PMIGjMIGOpIGLMIGI
 # MQswCQYDVQQGEwJVUzETMBEGA1UECBMKTmV3IEplcnNleTEUMBIGA1UEBxMLSmVy
 # c2V5IENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29yazEuMCwGA1UE
 # AxMlVVNFUlRydXN0IFJTQSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eQIQMA9vrN1m
-# mHR8qUY2p3gtuTANBgkqhkiG9w0BAQEFAASCAgA0OYZRhWdgu2Lw70L+3rtK31o5
-# qMBT85zecj8l+7gdKBE5BHO9o1/M4UvQS2E6yjdvLFCevOPEAetSJZsI+PMfNI3L
-# N30tgKTcjcJuYPhKHvUFlOu8tK+BbdlyZ+DzF7mKJ5LTrAuBxQYPs8PRbGZpAOie
-# paYweKuCnRUPnqG0XRYbZzW62UtqzVu8nM4diQQr5EXjClryYp0nfnGtf6I7ef7m
-# tg7ZtgRVenXwJbmZZ+cOPCKc8OGY1ZY0bj7KXf0Zs5/rI06nEaa3N4GvgdXj5RKR
-# AywV4/z822F4i4GKXVU9oxArYZtcvfLS0YcgK/n7cwpPvQiX6xdxVp5LiLWhSll4
-# 0c9E25VfqOLMlX5zQ61T8w+TYQ4rgsqLuGEMP1KDljL5B8dcwIC0pKF7fWkO8Imy
-# jg9qdWU/i+2UVetkCUQpJx3pWatynMK8uontqdseM7Zhcqvlqo+9whALKjCycMO6
-# Gg5UqMAMeKuC053C6VHp7UnnSi1nBq4FH97WgFKRNLsb5hpMgZnFcOD2Ly9fAXM5
-# 7NCuTAM1BVTPa0x2kwMmJvDxJHnVfmWAyM/7vC2MMi8kgB32IJ8KWg+kCRerzUUs
-# DITxg9VUNCBzmy7iWFnb2Vui3G2N5HHO0WsKEfYu6Kd4rOGlSRwCt0Nm97Z6LPh9
-# zomST5jGvD/Y2KLH7w==
+# mHR8qUY2p3gtuTANBgkqhkiG9w0BAQEFAASCAgBYl3m4BnaMZHEJ6En2P2FUmfgz
+# T5cVHC8Og08fY07ScgdxWwcAsZgSnnId1sltA6hXZZigswIk3QELe4jJfFCA9gas
+# LqZAog+W0Fcmb270WZGzJI93BWUf+8difo7nSh+MgDg8OeWHjanJl0fMj7N+Zrhx
+# 9n8gYsGAgtFE+Q8xcMTD9bogENkfPHc2BQxfalSFRNyom7EQSpqVytngeUy4hiRO
+# k14WfZj4Rl3WMhqsfUfRB1fI30APuiPmPy5H1YleKDt+mRU8Rtu6NeLfXusYUS5r
+# 8zm3hmkyhCXgnDMYzMi7FmBzH1Zsi6KK9LbfRlVdwSkInUAQD/5vaVPbIGHwA+Kq
+# mQ/Sju3tglPYvdNLnYBtUwbaxc355X/crjzQ2jaX5IkT0CzL/hgcsSbP0Hp4N5Ot
+# sNraND2UUJ/Ylgb3DIOVl3DomP0BsXvgVsn64BsAZaDIg/eXh2q2axRKhoGDsFuE
+# dLfgA6LHZuX2kT8Fhrt3xuNIa8gJrC+bIcE4NUqj2Bco23TYNHf0yH4RRKyyhXbY
+# zuzrb4/wxnifWkrTAhTPIo9k3XdkGcpPb1088EyqHW+V3V/GfLuTNvRHkVcxohk5
+# PEQ721zUYfS/DnUnOp0x2aK5CE3bJMe85hyHYGs5gASv6L73zGq71tkfTYqT5x1Q
+# /rcO8feQtYyO9pWGcw==
 # SIG # End signature block
