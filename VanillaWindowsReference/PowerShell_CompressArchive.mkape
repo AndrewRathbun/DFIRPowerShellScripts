@@ -1,0 +1,14 @@
+Description: Collect WMI repository information
+Category: KapeResearchJSON
+Author: Andreas Hunkeler (@Karneades)
+Version: 1.0
+Id: cebffd14-901a-44fd-9960-e3a781ac1239
+ExportFormat: ""
+Processors:
+    -
+        Executable: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        CommandLine: Compress-Archive -LiteralPath 'C:\RegistryHives\mout' -DestinationPath 'C:\\Users\Administrator\Desktop\RegistryHivesJSON.zip'
+        ExportFormat: ""
+
+# Documentationth
+# https://www.sans.org/blog/investigating-wmi-attacks/

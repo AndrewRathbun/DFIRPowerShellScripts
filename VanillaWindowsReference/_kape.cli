@@ -1,0 +1,3 @@
+--tsource C --tdest C:\RegistryHives\tout --target RegistryHives,RegistryHivesOther --zip %m --mdest C:\RegistryHives\mout --module KapeResearch_Registry_JSON,PowerShell_CompressArchive.mkape --mef csv --debug --ul
+--msource C:\ --mdest C:\RegistryHives --module PowerShell_CompressArchive --debug --ul
+--msource C:\ --mdest C:\RegistryHives --module PowerShell_CopyItem --debug --ul
