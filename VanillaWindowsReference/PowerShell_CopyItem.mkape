@@ -1,8 +1,8 @@
-Description: Collect WMI repository information
-Category: KapeResearchJSON
-Author: Andreas Hunkeler (@Karneades)
+Description: VanillaRegistryHives - Copy Item
+Category: VanillaRegistryHives
+Author: Andrew Rathbun
 Version: 1.0
-Id: cebffd14-901a-44fd-9960-e36661ac1239
+Id: cebffd14-901a-44fd-9960-e36661ac1679
 ExportFormat: ""
 Processors:
     -
@@ -11,4 +11,5 @@ Processors:
         ExportFormat: ""
 
 # Documentation
-# https://www.sans.org/blog/investigating-wmi-attacks/
+# https://github.com/AndrewRathbun/VanillaWindowsRegistryHives
+# This Module will copy Registry hives grabbed with _kape.cli and put them on the desktop for extraction from VM
