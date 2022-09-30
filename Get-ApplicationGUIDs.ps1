@@ -1,17 +1,18 @@
-<#
-|.NOTES
-|===========================================================================
-| Created with: |SAPIEN Technologies, Inc., PowerShell Studio 2022 v5.8.198
-| Created on:   |1/30/2022 5:24 PM
-| Created by:   |Andrew Rathbun
-| Filename:     |Get-ApplicationGUIDs
-|===========================================================================
-|.DESCRIPTION
-||I don't take credit for this script. All credit goes to https://4sysops.com/archives/find-the-product-guid-of-installed-software-with-powershell/ for the body of the code. I simply turned it into a function and Out-File'd the results to disk.
-|.PURPOSE
-||The purpose of this script is to provide an easier way for DFIR examiners to acquire GUIDs for installed software for the purpose of contributing to https://github.com/EricZimmerman/GuidMapping/blob/master/Resources/GuidToName.txt, which helps strengthen the output of Eric Zimmerman's shellbags parser.
-|.GUIDANCE
-||Please note, there may be GUIDs that aren't populated with a name. Don't use those to contribute to the GuidMapping repo. Also, you will need to remove the { } and the space between the GUID and Name values. That should be pretty easy using any sort of column mode/rectangular selections in a quality text editor.
+﻿<#
+    .SYNOPSIS
+        The purpose of this script is to provide an easier way for DFIR examiners to acquire GUIDs for installed software for the purpose of contributing to https://github.com/EricZimmerman/GuidMapping/blob/master/Resources/GuidToName.txt, which helps strengthen the output of Eric Zimmerman's shellbags parser.
+    
+    .DESCRIPTION
+        I don't take credit for this script. All credit goes to https://4sysops.com/archives/find-the-product-guid-of-installed-software-with-powershell/ for the body of the code. I simply turned it into a function and Out-File'd the results to disk.
+        
+        Please note, there may be GUIDs that aren't populated with a name. Don't use those to contribute to the GuidMapping repo. Also, you will need to remove the { } and the space between the GUID and Name values. That should be pretty easy using any sort of column mode/rectangular selections in a quality text editor.
+    
+    .NOTES
+        ===========================================================================
+        Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2022 v5.8.210
+        Created on:   	2022-09-29 23:00
+        Created by:   	Andrew Rathbun
+        ===========================================================================
 #>
 
 function Find-AppIDs
@@ -33,8 +34,8 @@ Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
 # SIG # Begin signature block
 # MIIpGgYJKoZIhvcNAQcCoIIpCzCCKQcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAe9GRBb6lRwEtl
-# COB9jBzW5RLogDyPKIV27QM2Y+oL3qCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCyNMYF36aNovji
+# AdI4ibrwqy5Qs6Eg506KyMLc8B1s46CCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -135,23 +136,23 @@ Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEINFUV0mU9WOK80BuTgaJr7aWerYlH0rL1TD7
-# chxPOMiaMA0GCSqGSIb3DQEBAQUABIICADp1SPH5H7h3oQW1bVyENbZQMFd1W7Kv
-# zN+KCgBXFRj8kjG/f9tJ4iVPNGkX3wpcJ+btPaAxyFj0POUv89yTsXIR2VX1I+A0
-# BCkjCfnjzSpM5woSBAWePZaJ1mEjETp+Rvxz5DsVbD9aZRgSOFJN6SE8xXUxEK6T
-# RLdw1/SofAdyLG5UJhl35iGNhgARP0QLM8wYZwaj5CfKNqMKlkmM7ADVf4tdQtfG
-# K/a1DProBJnefcwLvIVUv8cdxYFwShyme5dsj1BYLy9XGxjisajexeE6+eugmucS
-# +A15RmByEGK8VGiDgqgphVu80+oDij2VQdaCQWicY/RPOAamqwIJhpfzIXdHG0CR
-# brAL9iuoBF3Voo9Jc0kLa17w9gTa+xA7CMgmcd1F+zjj9Qu9ja+uI1aGSDByN5fe
-# oj3cbYHiD7PzAJFOnq2MSIYs9GFbktifFFV8RWFrCPU7GJgMzlYA9EPXC97hw5it
-# gwS7SnFT0kp3wW/0FZbHR/nHiI7HF+rcNUrnQ4AUoFC/IJpvuRuOZkT0cGqy1OPD
-# 7dVjqCFWcj9McWogmtWLtgOmdM3hQsVsb334PCV2VuODMv9a/1xBbqHUf61yTQKa
-# v5rsJ4H+ZnW5VaU4O9PrcwNXBwZ2ryCAE7TJeGTB549bYoUuGPD18bCWJap6V/2Y
-# 7WjBlK46mEg9oYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIG+HtnboOAcYKhRkv0PsDyI5gHl6coWaE4nf
+# BPmPgQXsMA0GCSqGSIb3DQEBAQUABIICAAHchMfnyYZBpYG3FW3Cmuon+i5eEHJz
+# oPnIqv6oF0IMFprjbwcwowtUyQO3E6P1Xf+jZX56CBciwVgJRRQTVOQSRxoPPgdV
+# g234OufMioYc93dXQJnc9cln2lUgBegt6lO1POnp1ftb94iy5URj9spW30LQjAdP
+# s3Jpuhwbj851c1L8gViaPuVLLrJdwZDi+sz3iw3P3gDIVkB8lFOQs+68cxiByFlV
+# 9shGJaUd8iqrFLwlN54HIYvGaq+Ezy+LuA37yXAnK8gYB4vWXIqk7MoFhKhIJvkH
+# s8k+gPe8Dm3YrB8Q0uf7cXVYOAD6Hjihj6rYxRkrvRDT36z7TIFt9YgTIyhYYTJE
+# E+AW0yqH9ajOl2qykvBSvZU3NwXmX3B1rch1SD1VSh3zFJxCKIf9zp3jPpstG3Ce
+# D0XceDTTUl8kGLbdBkg+ZsTRvkm21D7K0GtYbAA2eCFy2tkd2lFlJFGvBxZg6Z7k
+# 9X332o/amWzoScy3LIP5lZ5SrRWkIFpe2MM9TGrD2P2Z4M1xzkQVhT4LXAw9PJr/
+# hHFyr05K8mVqB9g5N6ueY+DlbamXvPrg9qAzFFq57KlXOaD9aRD7/x/5X1IeI35x
+# YpPGeG+976zXV/rbi3x/U7cZIKmZbAt7/EFswZf1bDDqTMwyJQYf9aAjfUfvbpYa
+# D4pyir3auHnIoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
 # oIITKjCCEyYCAQMxDzANBglghkgBZQMEAgIFADCB8AYLKoZIhvcNAQkQAQSggeAE
-# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgGgmNApPjk7Fn
-# HB3yt241bKbEmmRdunaPqH0MZQTRKZ0CFQDkuV/SaLMrugtmZsTIfhSgFJQQWRgP
-# MjAyMjA5MDExMjE5MDFaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
+# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQg0Gs8jzHezq/8
+# Em6qbvv9N0xY8ONDec9SoScS17Qf0RQCFQCyudiFm9VblPci+fziGZWr+v/2HBgP
+# MjAyMjA5MzAwMzAzMzZaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
 # Y2hlc3RlcjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0
 # aWdvIFJTQSBUaW1lIFN0YW1waW5nIFNpZ25lciAjM6CCDeowggb2MIIE3qADAgEC
 # AhEAkDl/mtJKOhPyvZFfCDipQzANBgkqhkiG9w0BAQwFADB9MQswCQYDVQQGEwJH
@@ -232,23 +233,23 @@ Find-AppIDs | Out-File -FilePath $PSScriptRoot\AppIDs.txt -encoding ASCII
 # Y2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1p
 # dGVkMSUwIwYDVQQDExxTZWN0aWdvIFJTQSBUaW1lIFN0YW1waW5nIENBAhEAkDl/
 # mtJKOhPyvZFfCDipQzANBglghkgBZQMEAgIFAKCCAWswGgYJKoZIhvcNAQkDMQ0G
-# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjA5MDExMjE5MDFaMD8GCSqG
-# SIb3DQEJBDEyBDDKQlBQIBs/PxteLqMYj0VhH5iLxvgwN1duitcTd1yM7bmvYJBn
-# CN670tUD5D6o9mswge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
+# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjA5MzAwMzAzMzZaMD8GCSqG
+# SIb3DQEJBDEyBDCdf/fVDF4eT0fMBMM/RFWvZ8o+QZOY8CWELPkdFx6COOVY4jL+
+# r2WrV4WSUwJNsE0wge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
 # nwga8LMY4YP4D3iBMIG8BBQC1luV4oNwwVcAlfqI+SPdk3+tjzCBozCBjqSBizCB
 # iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
 # cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
 # BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkCEDAPb6zd
-# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAG+Nyk3jhWEQhaAqMMDUmFj4i
-# p+UnZTV/WxY0TZ0XsG1L6zoBsMdtD3XHFM+TBk3HCiZHaR8WcMAjFurFtQwo++ju
-# IhrId8OdiTGxiG6v7J1DU3oMdE3j05TlCAJcFQAFWkrZud0R5PtDWpPSlfd2LHaG
-# eFG1B8shNwCvnGPJDLswHSG3ScyDXnr5xZ32uYAPk+oNwaDqaCspqOauIxL2AH3W
-# bvqGRS+1pDXiwl8Kov3izSk7S0wBKke3Nbkz/2lTT9Ut9TKHOgGmms/rXbfc8S8K
-# laxaIg2ZeP/25Rrz7ctydPlCrsZSkjZ2DqqeYf7Gn09zWwHsfkH6LONAb2hSd24k
-# 5/nS8rwl31HhjuoUzpHeoBS+sR61LX9foI8MOtvHRxjngUQSTWHntp9T0LiHyx4w
-# UclUOK2lRKV6a3PYRMNjGA6U6qaDOpHuvraftEWtCrtuq79O1F+iarrQMr9odt/9
-# MRu/HekUvSL9jtvF4is7FJHmOI8A2WyicO/ih6PSEaDbTBd9PMWjF90+QPNqhjGA
-# 40moe4CZC5GA7/kgXIAFbLE3meMSiqoKzrjZ50zOXhrpr2T5/8u8FpdNj4cYN/Kl
-# 05m4DR7VmN2JJECLyUSfTi6KwiLrUjBee9Vfl50EhReDyFyyQJY3Yc/TeMsNTJwJ
-# E7LA0jmj9xMcg/IDb24=
+# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIASfWGodIkEJ2v8GNnOGMN//ow
+# rS6RYK7tBazUtCrefEStgt4dAMQ2Y8X1Cfo20x250H0Ku04ExmirmHEPwRy87/cH
+# 6wsL0HQ8rmuKzZflzF2meUWhV3rd5HZlTVCdcSxX3MDU1rWXrhTTJfmGT8XtdB0i
+# vW2QCHtpJRzMYdrr9Zeoa7FC2q/DyXWrt0mz7zjkcpHKFwslIYiFx3FOGvqV4VAe
+# X9wY1mKrSYmHuZAz82V+D4Y7iuTJOC4jNaYGMhPosGNb3Nij+PNzNvHvpe0PDrFZ
+# nHeSRA+EsWb7x5jeRyW5AtAkdcIvq1gsfsfs0PuPNJSJmt00YOah7HldhJIOSrt8
+# QgLhAoQreBcZkZWb/w8lXwTCvFtrsmuMNyRAWScVV3AHtP+KoqVr4FI7QDGdEE0z
+# Xv6UneeCDr00o6zwbSbAJozNBhL3p+xgUn9aN4ZSzcEZUafX+zEcEeKro8Ff7h0L
+# k0V0LCq5nSS+6Ec3D19mB+HNdqgg+MxqJtyoyub8Rc9XTkRDKKs0A95EhUWeZ2s8
+# HGe81yuI6EIQTJrD6o20tg36Q6RWAJ6jpLajmUyfcPKvg4TwEZDFqlrIJbV71V9H
+# RA5hWYLTvDxIPn2eShcdnb891vQy+6wQRIFsuFANJrw6nN4XqGDjghkMyTU7UYMm
+# 5WOFp5JoWlg1Qo24s14=
 # SIG # End signature block
