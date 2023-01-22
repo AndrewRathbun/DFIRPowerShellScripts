@@ -18,92 +18,111 @@ Blog: https://nasbench.medium.com/
 
 param
 (
-    [Parameter(Mandatory = $true,
-               Position = 1,
-               HelpMessage = 'Please provide the folder path where the ISOs reside')]
-    [ValidateNotNullOrEmpty()]
-    [string]$isosPath,
-    [Parameter(Mandatory = $true,
-               Position = 2,
-               HelpMessage = 'Please provide the folder path where you want the results to go')]
-    [ValidateNotNullOrEmpty()]
-    [string]$csvPath
+	[Parameter(Mandatory = $true,
+			   Position = 1,
+			   HelpMessage = 'Please provide the folder path where the ISOs reside')]
+	[ValidateNotNullOrEmpty()]
+	[string]$isosPath,
+	[Parameter(Mandatory = $true,
+			   Position = 2,
+			   HelpMessage = 'Please provide the folder path where you want the results to go')]
+	[ValidateNotNullOrEmpty()]
+	[string]$csvPath
 )
 
+# Get all ISO files in the specified directory, including subdirectories
 $isos = Get-ChildItem -Recurse $IsosPath -Filter *.iso
+
+# Create the log file path and csv file path
 $logpath = $csvPath + "\results.log"
 $csvpath = $csvPath + "\results.csv"
+
+# Create the csv file
 New-Item $csvpath -ItemType File
-"ImageName,ImageDescription,Version,ServicePack Build, Architecture,Edition,DirectoryCount,FileCount,CreatedTime,ModifiedTime,Sha256,ISO Name" | add-content -path $csvpath
+
+# Add the headers to the csv file
+"ImageName,ImageDescription,Version,ServicePack Build, Architecture,Edition,DirectoryCount,FileCount,CreatedTime,ModifiedTime,Sha256,ISO Name" | Add-Content -path $csvpath
+
+# Loop through each ISO file
 foreach ($iso in $isos)
 {
-    Mount-DiskImage -ImagePath $iso.FullName -PassThru
-    
-    $NewlogLine = $iso.name + " has been mounted"
-    Write-Host $NewlogLine -ForegroundColor Green
-    $NewlogLine | add-content -path $logpath
-    
-    $driveletter = (Get-DiskImage -ImagePath $iso.FullName | Get-Volume).DriveLetter + ":"
-    try
-    {
-        $isoIndices = Get-WindowsImage -ImagePath $driveletter\sources\install.wim
-        
-        $NewlogLine = "The ISO '" + $iso.Name + "' contain " + $isoIndices.count + " indices"
-        Write-Host $NewlogLine -ForegroundColor Green
-        $NewlogLine | add-content -path $logpath
-        
-        $isoSha256 = (Get-FileHash $iso.FullName -Algorithm SHA256).Hash
-        foreach ($index in $isoIndices)
-        {
-            try
-            {
-                $i = Get-WindowsImage -ImagePath $driveletter\sources\install.wim -Index $index.ImageIndex
-                $ImageName = $i.ImageName
-                $ImageDescription = $i.ImageDescription
-                $Version = $i.Version
-                $ServicePackBuild = $i.SPBuild
-                $Architecture = $i.Architecture
-                $EditionId = $i.EditionId
-                $DirectoryCount = $i.DirectoryCount
-                $FileCount = $i.FileCount
-                $CreatedTime = $i.CreatedTime
-                $ModifiedTime = $i.ModifiedTime
-            }
-            catch
-            {
-                $NewlogLine = "[ERROR] A collected property was not found inside the WIM file"
-                Write-Host $NewlogLine -ForegroundColor Red
-                $NewlogLine | add-content -path $logpath
-            }
-            
-            # ADD newline to csv
-            $NewLine = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}" -f $ImageName, $ImageDescription, $Version, $ServicePackBuild, $Architecture, $EditionId, $DirectoryCount, $FileCount, $CreatedTime, $ModifiedTime, $isoSha256, $iso.Name
-            $NewLine | add-content -path $csvpath
-            
-            
-            $NewlogLine = "Index Number " + $index.ImageIndex + " from " + $iso.Name + " has been written to results.csv"
-            Write-Host $NewlogLine -ForegroundColor Yellow
-            $NewlogLine | add-content -path $logpath
-        }
-    }
-    catch
-    {
-        $NewlogLine = "[ERROR] install.wim was not found for the iso file " + $iso.Name
-        Write-Host $NewlogLine -ForegroundColor Red
-        $NewlogLine | add-content -path $logpath
-    }
-    Dismount-DiskImage -ImagePath $iso.FullName
-    
-    $NewlogLine = $iso.Name + " has been dismounted`n"
-    Write-Host  $NewlogLine -ForegroundColor green
-    $NewlogLine | add-content -path $logpath
+	# Mount the current ISO file
+	Mount-DiskImage -ImagePath $iso.FullName -PassThru
+	
+	# Log that the ISO file has been mounted
+	$NewlogLine = $iso.name + " has been mounted"
+	Write-Host $NewlogLine -ForegroundColor Green
+	$NewlogLine | Add-Content -path $logpath
+	
+	# Get the drive letter of the mounted ISO
+	$driveletter = (Get-DiskImage -ImagePath $iso.FullName | Get-Volume).DriveLetter + ":"
+	
+	try
+	{
+		# Get the indices of the ISO
+		$isoIndices = Get-WindowsImage -ImagePath $driveletter\sources\install.wim
+		
+		# Log the number of indices found
+		$NewlogLine = "The ISO '" + $iso.Name + "' contain " + $isoIndices.count + " indices"
+		Write-Host $NewlogLine -ForegroundColor Green
+		$NewlogLine | Add-Content -path $logpath
+		
+		# Get the SHA256 hash of the ISO file
+		$isoSha256 = (Get-FileHash $iso.FullName -Algorithm SHA256).Hash
+		
+		# Loop through each index of the ISO
+		foreach ($index in $isoIndices)
+		{
+			try
+			{
+				# Get information about the current index
+				$i = Get-WindowsImage -ImagePath $driveletter\sources\install.wim -Index $index.ImageIndex
+				$ImageName = $i.ImageName
+				$ImageDescription = $i.ImageDescription
+				$Version = $i.Version
+				$ServicePackBuild = $i.SPBuild
+				$Architecture = $i.Architecture
+				$EditionId = $i.EditionId
+				$DirectoryCount = $i.DirectoryCount
+				$FileCount = $i.FileCount
+				$CreatedTime = $i.CreatedTime
+				$ModifiedTime = $i.ModifiedTime
+			}
+			catch
+			{
+				$NewlogLine = "[ERROR] A collected property was not found inside the WIM file"
+				Write-Host $NewlogLine -ForegroundColor Red
+				$NewlogLine | Add-Content -path $logpath
+			}
+			
+			# Add newline to csv
+			$NewLine = "{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}" -f $ImageName, $ImageDescription, $Version, $ServicePackBuild, $Architecture, $EditionId, $DirectoryCount, $FileCount, $CreatedTime, $ModifiedTime, $isoSha256, $iso.Name
+			$NewLine | Add-Content -path $csvpath
+			
+			
+			$NewlogLine = "Index Number " + $index.ImageIndex + " from " + $iso.Name + " has been written to results.csv"
+			Write-Host $NewlogLine -ForegroundColor Yellow
+			$NewlogLine | Add-Content -path $logpath
+		}
+	}
+	catch
+	{
+		$NewlogLine = "[ERROR] install.wim was not found for the iso file " + $iso.Name
+		Write-Host $NewlogLine -ForegroundColor Red
+		$NewlogLine | Add-Content -path $logpath
+	}
+	Dismount-DiskImage -ImagePath $iso.FullName
+	
+	$NewlogLine = $iso.Name + " has been dismounted`n"
+	Write-Host  $NewlogLine -ForegroundColor green
+	$NewlogLine | Add-Content -path $logpath
 }
 
 # SIG # Begin signature block
 # MIIpGgYJKoZIhvcNAQcCoIIpCzCCKQcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB/2xfxOLPkhcVZ
-# ZwQ4oBu08+K9PK75Aoi7xTR5S7q1maCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAlVABmPdM1ATBw
+# UQIBpm+QphsPFwxQXPTZFNK2BDA3m6CCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -204,23 +223,23 @@ foreach ($iso in $isos)
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIM5AiCnHGK2JBKmSlY9GWOaczovVAo1KAIjd
-# eIW0nAQWMA0GCSqGSIb3DQEBAQUABIICAKlw8UqmFT+KMVnYZWeH0B5wkktIfojB
-# mSXlj5dnwpAiZuLb+8TnkYqSn6xC+htc4CY4FqKi3e+/3wtizxCcL8ueQ4i+wa+g
-# psDyeyq+/JSsFgqgCRTtikDyvDb47JMcg57dBSwKgwFhUimJEkGU5c1DIazLpFC6
-# VWM4tyEpY7OIWa2TZvIHgPHX3V34I0A+XNiQZlB829jK88W+hzRSWI8uDM2zLoZS
-# ZaqQS54lslB7vpHTDi50EtRyO+lBEjRa7lMOuketaz7J8YCAo06CUX0a60bgZrJ0
-# CyyksY7dN1nWK/jziug86TTc36UNmGB04s7ENvqS6aos3tqlwx/9CnIlwAE8QgG9
-# Ol7mQz91nr4jSpO7iFE2m3a1qv9SonWAOohhUhGQjoIkqaiFRunRIINloCt2rSjJ
-# 0YwmIa6VeyMQlo9MoHhmqsattXuV9s2jggtirKi+kT3+RBmCPvoRIG29WtQuqDnP
-# CUfKaloSp6h8WW6AutzH9QHb2YkCsWMN5CcIO8oNPIE8HR6lfZ3BiyNuiVW6NIHz
-# 5puVgNw0Eyz5LJ5vSc+r6/tFNGRzCnqPCCBHnsn63Td39xiEMiyeJAkmnDpeL+Sy
-# TvpIpZONNsBky9PzHVKzF7AbeZlfad8lTE6otQE33vej1xRGMPwz6l8VXEcHHoVK
-# mNAHjo7+jVcnoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGKokEvKVDxgKoDb+g030V/bnegKUPPHKBFv
+# looTY/F3MA0GCSqGSIb3DQEBAQUABIICAC8j3VjBBzvZ/i7Q+kti+N/kc5X0UO6O
+# V5mD6+/jQ85cwDgAXnAF40TSPcgWZ5avSIBo/AmB2Lwzgl+Dj1qQoI8qQ1fr9NUv
+# IN/sfpmyFFewE0O1Qk3+ujfCMNstper16euVNcYQ/3uNIaUEtIrdv7zkcpE76CGQ
+# v2CL+Cpq5qP9KXjojHFQuoWqT4p2i4Aqpn5WjQntp2j1TbyR/nYkG+jElLNJMQkS
+# yJf2rZY4E5qWLhcY/m+p3ES73AoFhjK2LkqP3lkMd3Y0L6zTZHgQeayY8sWcrJLn
+# Ps0M4j9c2fcbrI1MEU927B7vX7jSTvSf1Qui1gulOG9/b7WJ0mRpecjI5XcBFSm5
+# fBUu38PHPkgqkmylsB9a4Csdh0FEkTQqs4D/j1edFvJXlBd5uQW9eLBAe3l34twd
+# snkaJILCiDnMcSgn6IPQ23uG0TmbcVKJ5fNDaZy7AixV1C28lTALrJx7hd87gGKm
+# Uq1Ahp6hfw5oynvoGJ37Ge6knNzJ+RtFYto+/57N7G/fi2OKEjmPMM/DXxHfcBaA
+# ViBzr0hZaQBLREVljnqYBzl9KKLduNEmVIeXP/Z0nb4LkF16f2ESAdAw1lbvIhdG
+# dnIE8Y9xzv/jHkKnKvCy3T9Siwo/jUBHgJhPenr5Nagz/zR44SOHYH1uy0EfxEOp
+# lW9k6dGd5DtloYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
 # oIITKjCCEyYCAQMxDzANBglghkgBZQMEAgIFADCB8AYLKoZIhvcNAQkQAQSggeAE
-# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQg2Z9fIOsH7hyt
-# 69XgCDRkqiVQkxmr5k0C2rBT+70SzbYCFQC3fwM0XxXbrlWUg5A7oTfFOxVcqBgP
-# MjAyMjEwMTExNTAxMjlaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
+# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgAY8aWm0DTIMr
+# 4h88pRvuq3GnRFjUlSCHJecNXcLRjdQCFQCKEvQ9D7PadOs6GnjEYoJE1kIggRgP
+# MjAyMzAxMjIwMjQ1MTBaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
 # Y2hlc3RlcjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0
 # aWdvIFJTQSBUaW1lIFN0YW1waW5nIFNpZ25lciAjM6CCDeowggb2MIIE3qADAgEC
 # AhEAkDl/mtJKOhPyvZFfCDipQzANBgkqhkiG9w0BAQwFADB9MQswCQYDVQQGEwJH
@@ -301,23 +320,23 @@ foreach ($iso in $isos)
 # Y2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1p
 # dGVkMSUwIwYDVQQDExxTZWN0aWdvIFJTQSBUaW1lIFN0YW1waW5nIENBAhEAkDl/
 # mtJKOhPyvZFfCDipQzANBglghkgBZQMEAgIFAKCCAWswGgYJKoZIhvcNAQkDMQ0G
-# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjEwMTExNTAxMjlaMD8GCSqG
-# SIb3DQEJBDEyBDDjr4baT6xe82pKkCec9l0fuXVRp9PNXKcgISHkoJed7st5mE02
-# OtFfONDQipIXJm8wge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
+# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMzAxMjIwMjQ1MTBaMD8GCSqG
+# SIb3DQEJBDEyBDCRm1MolEdA3x2KS4oa79/kX5MZEMZSyvDmPuk/b9UufvSgHtOI
+# VCKkELt1aPTc6c8wge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
 # nwga8LMY4YP4D3iBMIG8BBQC1luV4oNwwVcAlfqI+SPdk3+tjzCBozCBjqSBizCB
 # iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
 # cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
 # BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkCEDAPb6zd
-# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAdIS6AptMbpZbn/Z3xHf3Tt7k
-# +A7wgiBn7XgGya5rOS4ehauJ6DzhtvKWS17FpmvU+Nh/f266OQkD1M2icZN8Zmrb
-# zrYOZIu942Xrf9kpdYlPdXCRefahMHs2QatyCCfUFGWL8k22oX5oaEoUxDkQeMBQ
-# fvv2TyGSH3FOLkxbs1DCBdo0Wv0dHTAmOkVbgH0FNDzy6GMqzfYg2vtb/xaM70fr
-# iycfgiGy5LUyU79rGrOiS5cS033VJKf2Le6UatH63CP1LFpI8aO4CUaVr6Cpq9c3
-# WPEeDfLyn36+SMfvfepvn18UgVnyobhRa3Cg2Kmdx17yuVHc/dkYvC5eyajUKXJ5
-# Uxl9lsYNZ0/ikriEpLOxrlmBfNeXulJYfS8p04xovBKZiFsxA5mxCuysZ/hqy6qk
-# eZE1xyhvi7TCAwg7v/gOyrn7rEuHUJ7CETWxvoAnag6tH7poZ4pIzPTl8NFQ1bau
-# MdxGFxGimcfQcQFBSKqN9C7dgdkLQgu29I49OXtZNuhXvUQej25uC89CjNShhSfF
-# 2Te7Ii1Cqc7WwltDu1vE9TRxWOY6sTZjaY8rndYmJcV742siJ9CnTa3YHw+bTFF7
-# E3CHy7gEmzaE75H6TcKUNjzlGZ+S/gxLREPuu51acl7Y8Fy1+2sefYFxJPcfAodN
-# 3we7JYKNp3cxG2pVRzY=
+# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAWcEiq4PvyGPsefjPil0AF6qu
+# QmaqNBgHkMhdK7/8JWQ1b7R/lWSUkbltVQjXu2kig23Y7vQ9mGpEw3YQbh5WldFj
+# mmNb5NBq40iNRNwNJ2Llge8qBK7UFvBlmYKgXXyxaqIPA1XKDoAVJOCrvMtnY+Kc
+# N1Faozm0tF9WQruuxNJXpfgLKa/A6FOnVBQGQuAmq0dkCQojU/NLBpP/rPzE5ND9
+# a4RXTUS6PmNMuDP+6eQLscIwfeyVa0CzgQb+ReV0iCWrYcsr7N7bED7XLYD5DzJb
+# FZ6RrRWeVIPzwNe+pLYN+iwbe1LDgTTfUKDT+V1jK63aLfj7j7W+fNgke8l7Je6j
+# f4OEUk8isNBC/0KHfgiEU+vS0Jiozz9G8ql7wywmGJpsKzSWyCDGCJSWTESlIU3x
+# nLEqOjFq08s1nNMHZdor80pOVEkcpBBa/5eanXO4s35wBbMi4FsTBFYlv25O5ITv
+# +ihuifNaogw9lVWu5cj22V5ohtyWD3zOgZY7zkwFNNRNerXAdjnnlQ4srb+/hS4c
+# kmv9+fM5oVRYYiLz0sfnZc5pG9IeqmNYBc7qq1wxvnlqA7OCPHT4SYN2ZaWGdJPo
+# P3WM07pFkBJXmjZRy0cfDf0BcLnsSlJudKnFDWC6rVluazg0i4d9l+KxKSRwds2C
+# W7endxyM1G5+aeisGNg=
 # SIG # End signature block
