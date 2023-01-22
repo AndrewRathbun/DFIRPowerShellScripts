@@ -25,30 +25,39 @@
 #>
 param
 (
-    [Parameter(Mandatory = $true,
-               Position = 1,
-               HelpMessage = 'Please provide the path to the KapeTriage package! Ideally, point to wherever the Users, Windows, etc folders are located')]
-    [String]$Target,
-    [Parameter(Mandatory = $true,
-               Position = 2,
-               HelpMessage = 'Please provide where you want the Thor report to output to. Ideally, point to the .\Analysis\hostname folder and a Thor folder will be automatically created')]
-    [String]$OutputPath,
-    [Parameter(Mandatory = $true,
-               Position = 3,
-               HelpMessage = 'Please provide the max file size (in megabytes) of files you want Thor to scan. For example, 1000 (3 zeroes) means Thor will scan files 1000MB or less only. Change the 1 to any other number to work in values of thousands of megabytes')]
-    [String]$MaxFileSizeInMB
+	[Parameter(Mandatory = $true,
+			   Position = 1,
+			   HelpMessage = 'Please provide the path to the KapeTriage package! Ideally, point to wherever the Users, Windows, etc folders are located')]
+	[String]$Target,
+	[Parameter(Mandatory = $true,
+			   Position = 2,
+			   HelpMessage = 'Please provide where you want the Thor report to output to. Ideally, point to the .\Analysis\hostname folder and a Thor folder will be automatically created')]
+	[String]$OutputPath,
+	[Parameter(Mandatory = $true,
+			   Position = 3,
+			   HelpMessage = 'Please provide the max file size (in megabytes) of files you want Thor to scan. For example, 1000 (3 zeroes) means Thor will scan files 1000MB or less only. Change the 1 to any other number to work in values of thousands of megabytes')]
+	[String]$MaxFileSizeInMB
 )
 
+#Convert the max file size passed as an argument to bytes
 $MaxFileSizeConverted = $MaxFileSizeInMB + "000000"
+
+#Search for the thor64.exe file in the current directory and its subdirectories
 $Thor = Get-ChildItem -Recurse -Path $PSScriptRoot -Include 'thor64.exe'
 
+# Start the Thor process and pass in the necessary arguments
+# --lab option tells Thor to run in a lab mode
+# -p option is used to specify the target to scan
+# --alldrives option tells Thor to scan all logical drives in the system
+# -e option is used to specify the output folder
+# --max_file_size option is used to specify the maximum file size that Thor should scan
 Start-Process -FilePath $Thor -ArgumentList "--lab -p $Target --alldrives -e $OutputPath\Thor --max_file_size $MaxFileSizeConverted"
 
 # SIG # Begin signature block
 # MIIpGgYJKoZIhvcNAQcCoIIpCzCCKQcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDEyol1sRxKa5Zp
-# +m4hMUwTBDS0fIIK6Mhd39bPtfvANaCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBrcMxUKgBM2gu/
+# CvX5KDqRXdyw81WbaLsJwrFWTAmWGaCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -149,23 +158,23 @@ Start-Process -FilePath $Thor -ArgumentList "--lab -p $Target --alldrives -e $Ou
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIGZGOffrJg96ehrV+U9ou2qrL3umlTyRzDRE
-# krUA2/+ZMA0GCSqGSIb3DQEBAQUABIICAI3nVrble72M0zQW45NIPY5rXAZiduVn
-# XaU7ugAcLejP1XdUdECtqgbYxZiGioTr3ORfRsarcbEQgp6DuApSmndghNWHbz9b
-# +2K9/v6plNSgihzr4dPMTeBaEGUjxbJFBt2uv8Vu4+ObCNepjk7jAzCMTKkWwOg6
-# Pm4k/VC219J7ZrEB7XBYmv3qdToyHkO2IBp9fM20DcAAmTrSsemcEIenjTeYm32R
-# ssV9C3uSNnDWCZtVx8S6QTWrsNEyqfwPu/Np63hgxhT3qorlhC+BPocA+CP7DQUa
-# rKE19tRQeBc+Tygi2737hnKPnXdQ3zoix52yhUt6WqRRY+SKDMdK4Be4g5nOwFM4
-# weGRlfyGiSmpsRe02cB4iJLefBZuXyL2acMtR6KiOuL+oXQ6Abu5zUS6gc86D3ho
-# 5YO6Qas5BRymS7AYJKrmqFgYiBPbP0oqFS2XkwgBhFZMvZfI/Bta703fQ+kL2Dv4
-# G2qsnYCUnJ0fbSDz0SrTNp4IXimI8D/yHWZIClY24CBL1gvZcRzRwHzFeL8XiWPh
-# fcOOJ5Hag7uG38IebjzrbTt5gvzhoWlZRbQnKzE8kKVg+bkmMfhE6qodjJtC9InW
-# gOn+KYK923hWUpl+DXkiVgrhPKK31grk56+TYRt3Nz9K0ge4SFoiqCS9g1+ZdJxD
-# Rowx2s7+jk3joYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOBBymZEyVTPOFOqvy/VuUpnbBYOxk5qVIYK
+# VLvyCs0DMA0GCSqGSIb3DQEBAQUABIICACVcxg973RTU5vZMkU3rm2XGhr+UNNrd
+# onWrzllf+u64AiXec6rDXkGWnuZ+0kB1TLKH+VmlAZTdfkzfwrc+nLEXmhHeu2Cw
+# 6poGRynHOIRBMTfGIMHaIzmSbG8c+1pMdeF1qOSUD+cnjNPwrmETOuNMZEbDulut
+# qEdyGcsGxlm7mhvekJqCg++QZMxPPD1TIYHpadGDki6KLjU4SlDSsZqflACKIoNR
+# 9I3iIk9yiPvmLJLCLFt43pjd7x+f8bknf7XwDz+bFyUzE5GgSYtCkKu4uUQykI7F
+# n5FMRYYpbhAeBo9/NNbHdd7dWDvx+do+ir2tcIg6vNh9WrpBbx0mVkgQaqIjT8Ya
+# MS2MkiHREeUC2xY7Azz9Fc+TWRHf3LV0k4Jk516APM6lsEYr8qTasOAiov+1wLE9
+# uaUze8wl/P+zfA1uppUt7HOJ9l3+dB2YOKagTacQcsF4KgT5WnUNGRFXJVBF2eW5
+# AcwAUdaUzTo2nlgwrTC09VgjAiI2bgS8Jw13fR7+uZtX9ZB3eVArQg4E4yhZaHWX
+# 5ZpSxeZpby852psySu4xwvXY//CIEjJwhdRMsGuFb23ETixgsvp1Yv49PU91jHxu
+# 5XcFdFcpKbVnWmNZkbVw60s3ZA9yBvZKLieo98Q6fY2eBHuN7AOE5Rf2w9HYSvQS
+# UeLPx7zm4r5KoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
 # oIITKjCCEyYCAQMxDzANBglghkgBZQMEAgIFADCB8AYLKoZIhvcNAQkQAQSggeAE
-# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgzlM0L98MRuW1
-# cl9ALqME3bc30Ul74uj6aK5bcNBRNSYCFQCV9w5V/m2VL3DnpSgVSzMz1eYzRRgP
-# MjAyMjA5MjgxNDI2NTJaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
+# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgdWZNP1RSJRgG
+# WZF7mNmNqQHStq1aYgcrjQC1CpzUBfUCFQDci6qLRh/Fy92zs0yz7Q48/5BrtxgP
+# MjAyMzAxMjIwMjUyNTRaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
 # Y2hlc3RlcjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0
 # aWdvIFJTQSBUaW1lIFN0YW1waW5nIFNpZ25lciAjM6CCDeowggb2MIIE3qADAgEC
 # AhEAkDl/mtJKOhPyvZFfCDipQzANBgkqhkiG9w0BAQwFADB9MQswCQYDVQQGEwJH
@@ -246,23 +255,23 @@ Start-Process -FilePath $Thor -ArgumentList "--lab -p $Target --alldrives -e $Ou
 # Y2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1p
 # dGVkMSUwIwYDVQQDExxTZWN0aWdvIFJTQSBUaW1lIFN0YW1waW5nIENBAhEAkDl/
 # mtJKOhPyvZFfCDipQzANBglghkgBZQMEAgIFAKCCAWswGgYJKoZIhvcNAQkDMQ0G
-# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjA5MjgxNDI2NTJaMD8GCSqG
-# SIb3DQEJBDEyBDD5SC8GSXlM6rZ60dOkrDnNk6cqDLF6/bxDCdhQSQiNyZdCYMh6
-# VQtyTlPEs5Znhpowge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
+# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMzAxMjIwMjUyNTRaMD8GCSqG
+# SIb3DQEJBDEyBDBWQ2jQr3HmfeV7ZSlae5Kt7JarJK9srksf2cEKbMxPduOK/z4s
+# WSG97OkB3T/3Qrwwge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
 # nwga8LMY4YP4D3iBMIG8BBQC1luV4oNwwVcAlfqI+SPdk3+tjzCBozCBjqSBizCB
 # iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
 # cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
 # BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkCEDAPb6zd
-# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIADL0QEdIPsMCwjBUOifcY/xEn
-# d0/TLMhAt+a/c5EKY3MygEQZHEF3eQ5I7kJWnzGhTzMOxfyjADsPv/WfgPMZ1OY5
-# WSo6vSJ7vMbY2zauRX/RT310SqXfAp09Xu+qsrKqzF7LuZP70JHNHPKX7rOzBmUo
-# DhxVDm7sz6+bm6sETtLiZWpzdEjkNbvzaFEq+lUn6CmzoDpIxeA2WIGYqHRvjoht
-# qnjymaK1LxHBE3RmIBYgqPOjvU2MBT/LPjcHTceGCzmm2ULUieUfeHCokZbSpNIf
-# Q35WZ8aA5KsGjdPedkzcLVhZgelnHdy4ClbUrvvj3igYVV7M4lmO6tlQ7y2EM9cm
-# +4AUwqgqbfgsMlx4Ov9Dk57Hnw7lfpa0D6AFaM4ixTP9bjlUjaqSOWVFFnV4hkUd
-# zyeLU1DUpiMapQRrYFOUPCUjkfTTENlFLrBDHtdGwMpP9RPyG2ttwrIEba0Lt2xq
-# b7b+MxpDPYz1h2JWPVtVf3JTDzMHFqWZHRdexrCnR28+uygWrb0UsNUbxXk1liiX
-# WileNnhx5XAlYb7lW7XrTNvkeMJyu2KZJ+n0aq9KTsVESlLJBJ97frX05PAIWC5p
-# o+ugDAskcXPbAoGJ5n3cSiJqO/Nhzvasy+qiGUDvvLtgoEpZSkZ46z+6rfa/Iihf
-# dyL75Zo6E10fdKWE6zg=
+# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAhtdfyzl3EsjLuvDLOT4lDcSo
+# c6L+3xw4A3mlFe9r/2gvFmU0b2qkb60ASgUlaU0IpY/Si/ZF7RVWcdqaEqOjV87/
+# olb7XrUMNQLcgUnKVTQ/M465Fjoe7UBZ2ayRMlb/2XtYbJ2F5hMTUNfmsa7bDlcJ
+# gmiYXmaMt8pW/MxTHuK79nVh5Bt49y+h7lQ5/r+ELyPciPnt2hKytxiT9lnhDALe
+# +V2ykPcZQR1qHpNPKZt7DD473xQF8y+URSc9Pv6JV89QxIrN+BMuzA/eKnTtziWe
+# 2fL1KuVx3e0ZvYRyFknMf5atHGV2N718TlnUxpcxM/L/NBsRKcR7oEuulf6KNUuH
+# j3KEAKd1qZtNHAio+PUB/ZdRgh7BD+CbC7dgPH1GK7YbpcNgLgGZsfUg99NzpsSa
+# a1/C6K+CiuRyxkOwe154Vna1Hr7pKDvFr6IahKh/TeDN1f8jGGqqJhDCdID2oyqu
+# pPABf12OfszvBJOD1DY0szoLNblz3q1Vs+Z+ZDEEBn59nnpHzlcLBs2Wv+91oov9
+# wSCE/RRfVOtNiA9HfNT1UyhwQWpZ3PxJDkfsFEKCNEO4GKGhN74Y+yH/ylNLOvvF
+# X2Og4DgjGeRsOd1/11rkYIa+BtMfg8aOlcNMgqBKRiU7f7j/6cqtTEE44XK0VHX3
+# 4WslMRiZMh+wdIoEeg8=
 # SIG # End signature block
