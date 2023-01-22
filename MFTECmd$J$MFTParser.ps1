@@ -20,36 +20,50 @@
 #>
 param
 (
-    [Parameter(Mandatory = $true,
-               Position = 1,
-               HelpMessage = 'Please specify a folder that contains a $J and $MFT to be parsed by MFTECmd')]
-    [String]$TargetsFolder,
-    [Parameter(Mandatory = $true,
-               Position = 2,
-               HelpMessage = 'Please specify where you want the parsed $J and $MFT CSV output to go')]
-    [String]$OutputFolder
+	[Parameter(Mandatory = $true,
+			   Position = 1,
+			   HelpMessage = 'Please specify a folder that contains a $J and $MFT to be parsed by MFTECmd')]
+	[String]$TargetsFolder,
+	[Parameter(Mandatory = $true,
+			   Position = 2,
+			   HelpMessage = 'Please specify where you want the parsed $J and $MFT CSV output to go')]
+	[String]$OutputFolder
 )
 
-if (!(Test-Path -Path $OutputFolder))
+try
 {
-    New-Item -Path $OutputFolder -ItemType "directory" | Out-Null
-    while (!(Test-Path -Path $OutputFolder))
-    {
-        Start-Sleep -Milliseconds 100
-    }
+	# Check if the specified Targets folder exists and is accessible
+	if (!(Test-Path -Path $TargetsFolder -ErrorAction Stop))
+	{
+		Write-Error "The specified Targets folder does not exist or not accessible"
+		return
+	}
+	
+	# Check if the specified output folder exists, if not create it
+	if (!(Test-Path -Path $OutputFolder -ErrorAction Stop))
+	{
+		New-Item -Path $OutputFolder -ItemType "directory" -ErrorAction Stop | Out-Null
+	}
+	
+	# Get the $MFT and $J in the Targets folder
+	$MFT = Get-ChildItem -Path $TargetsFolder -Include '$MFT' -ErrorAction Stop
+	$J = Get-ChildItem -Path $TargetsFolder -Include '$J' -ErrorAction Stop
+	$MFTECmd = Get-ChildItem -Path $PSScriptRoot -Include 'MFTECmd.exe' -ErrorAction Stop
+	
+	# Run MFTECmd.exe with arguments
+	Start-Process -FilePath $MFTECmd -ArgumentList "-f $J -m $MFT --csv $OutputFolder"
+}
+catch
+{
+	Write-Error "An error occurred while executing the script: $($_.Exception.Message)"
 }
 
-$MFT = Get-ChildItem -Recurse -Path $TargetsFolder -Include '$MFT'
-$J = Get-ChildItem -Recurse -Path $TargetsFolder -Include '$J'
-$MFTECmd = Get-ChildItem -Recurse -Path $PSScriptRoot -Include 'MFTECmd.exe'
-
-Start-Process -FilePath $MFTECmd -ArgumentList "-f $J -m $MFT --csv $OutputFolder"
 
 # SIG # Begin signature block
 # MIIpGgYJKoZIhvcNAQcCoIIpCzCCKQcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAt9zPwHm8KMZB6
-# GZfGV/CkAeiRZwyycMS7CKPJ68ZPsaCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAsZGTIsZ9UcIIT
+# si9S7/pJ/mARPEefw2y7TOeaYxhKtKCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -150,23 +164,23 @@ Start-Process -FilePath $MFTECmd -ArgumentList "-f $J -m $MFT --csv $OutputFolde
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIChI/nO/tEx9LpG3tpUe0B1NkYDmCNgGofpL
-# 5Uz1M0BuMA0GCSqGSIb3DQEBAQUABIICAA4xlcMHrRa+MAMy0UzOrJSg2i1wu0eO
-# s9SKI5z7teGJNhSGAw6Max3msmLnxXNSInTXjZJIWJo7cchIfs19hS9lGOS0K1qf
-# 9A9nAfelMyOKivkKR5WHWkZW/nomRPrUQkLtVQ8jGCniVFKynL57nTghq+5IQ3OG
-# UvmTp5yPc1jD50v4gAkSD74G4EiaYqpe1P08Z/BWxxqxWcctnESs9xo9IiuijSru
-# ydyGUKwqbCI0X0V78gwL38hoc6wg+mLYTwM5Tvb4eAvcPxbTvxqYEGdVvpT1CjT/
-# zL9s8zVssoYjUIv5jr3+NgG3CQo2ZtkJG5mQtfUkpLmG5XtdNMxcGK0oWmF4FVOr
-# 2Hvv5dspu90teYLisnaljrNmFMoA50p7gg0aM5Ydbra/yaH/9ANtzXzi4oRJtpXQ
-# wtGSQptdTdZZiYh+ZYQaSyUtHgZs4HSZserzX+OvadYAiBaTN6yPlcmZ0sKZmijL
-# Xh5FqMr1vJ9TGNbNXuF2QO0tvn8JKGaUlfmAWFoIT+TGQK46g0iMd0yEuhxDopv3
-# CK4bzz1PDkFDSwEJ8IowPJZry3Qd9YoD/QDO9fIS7Eq6NGcGJmANuxIgjuKEf8It
-# 0+f5bxBTrnf7NB1UKRVBHqy8JpsaZWQZyxzjTThX6V9WLJxJLasx+tsulE4kZ5+f
-# 0VModNS7YgkRoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIG9UM2z13A69KqhoXu+cMIin3hUmVH+ia6MK
+# 6Jg+HxwqMA0GCSqGSIb3DQEBAQUABIICAJY2Jm3uKveuNZ9G341wMJdlPra59T7I
+# Qdz+ve91IJMCUC1AWVh0LNcfm51hQa8y7c5tMdhD2o4u9yltXOkEdRCfTYgyfHOE
+# 1kHM69yaDwTtSSFlTUiOGn5w8zsgChipmAegp5pwRiqp+4Jx38ioiJxVG1Tui6Ek
+# PZQnseBRiL0ZCIoC5mb751RzupPQW/dwvnOzqcceiqA4BY2/Vkm8nLqFRyiJjRB8
+# TYG9vtUlU8maNxHxylfPi0hoRSGC5mQ2T28z3TODkCy2tyj32OScdTEJ/AxovptP
+# QvdZ1S1KbmFvyBmN0LjGO9V8tVHE1Va1DFPntIEvXnl+MpwMkaoXf4Dgk0EYhUC6
+# ohD9AtM/ll6nZE9DudBf05bER5GVjflhF6BCOkap6PTGKiZKjq6yf5UzGcdZxg4a
+# jEFF5qCue3VC1vRdACdtX9PLJaWfCFhzNffgrdeSvrjl/n9fuJzpNvNQAxDArzQz
+# JYYcWJwIy+awTC8imAIUFJIAZypcCOKKhjg/wlxV44PihXAaEAsnoZPsYdKxjIfm
+# QikAfyh27XKAh8eGN+d2fo16pB+wIuMU2QTdCz+Tpqk+aVBRo2kADBuspF+VVH7k
+# cSHoM/MNghEK3nMbp/nYeZ5RLqc6bafdjytOEZ9woxYoNoecTNEbfbT93ji0e8l0
+# 0DBS3LuJQAjpoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
 # oIITKjCCEyYCAQMxDzANBglghkgBZQMEAgIFADCB8AYLKoZIhvcNAQkQAQSggeAE
-# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgnGEEvnIBgLVg
-# xPSLtFa5TXstDNrug2iEzEFiXzBV0Y0CFQDoQzIY8XWckfrHNeaY+xHJGEi3/BgP
-# MjAyMjA5MDExMjIxMDdaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
+# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgmnEvw/M//VWT
+# RcdbX5xODx1ltkNTmj5M6NMo0DzrLGMCFQC+qzEMmP5F5f45jJdHjUJOGFmw/BgP
+# MjAyMzAxMjIwMjI5MThaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
 # Y2hlc3RlcjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0
 # aWdvIFJTQSBUaW1lIFN0YW1waW5nIFNpZ25lciAjM6CCDeowggb2MIIE3qADAgEC
 # AhEAkDl/mtJKOhPyvZFfCDipQzANBgkqhkiG9w0BAQwFADB9MQswCQYDVQQGEwJH
@@ -247,23 +261,23 @@ Start-Process -FilePath $MFTECmd -ArgumentList "-f $J -m $MFT --csv $OutputFolde
 # Y2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1p
 # dGVkMSUwIwYDVQQDExxTZWN0aWdvIFJTQSBUaW1lIFN0YW1waW5nIENBAhEAkDl/
 # mtJKOhPyvZFfCDipQzANBglghkgBZQMEAgIFAKCCAWswGgYJKoZIhvcNAQkDMQ0G
-# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjA5MDExMjIxMDdaMD8GCSqG
-# SIb3DQEJBDEyBDC4jN0FZuEOd6ycbp24XRAYmqu+xkwrywogFTomYRBrAtZAich8
-# Gj1oWzF9WCgloKcwge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
+# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMzAxMjIwMjI5MThaMD8GCSqG
+# SIb3DQEJBDEyBDBofZOgiM1iPGNA79JHTPd8h3HkX3J8UVHP+nftskg0vyI6XNkC
+# vSxWESaNoUBDFWMwge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
 # nwga8LMY4YP4D3iBMIG8BBQC1luV4oNwwVcAlfqI+SPdk3+tjzCBozCBjqSBizCB
 # iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
 # cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
 # BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkCEDAPb6zd
-# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAKoPYu1uMWQ1cUaHUMgxdp5X+
-# gyXpFOxq9VcI/ghk+hjho0R44LlbH8rRys1OIianzRD6y1XUtk6F3XkT4aFEyRAC
-# 5AAIKA/Qnb0U6IikonvjdW+RPDVIEX4dqq8zvVNeouWpQw6IixZn2F957vvHLaPi
-# mfgdGVN2vqAwQWSvRdB+zZqLEJY9Yje97zKG3n+sPql9F3C58H2UEWGV1lmpAIhH
-# wiQeFX3RcRtdAXyAVagHYcHzQHCDZ8pwmlJoXKd9kWI7mEQFQp/DwdJPKBYQkXan
-# OidoaYOarbcri5ZoMyCcIb6CkA5mWLvYBFCOqLCqLyTsZORC2SqflH8LmWLxx6Jh
-# Lndw/WOQ3FBbDPZw65cR/UMFMOAgCBEBo4da76jP0JDVQ3dc7eGidczgFS7HEmz9
-# FRHHjQPm9MtSWTmdP4RuM2YvETVpJxmUJFB6t4CQmGBmbsWrYFjimjmgYItbfO5w
-# J5FWFEnT+dfEzA6RFhYS2lpwqTjK7buqmb7wjsIybKeyRqB5lyE+Rv7Nq7X0nqIw
-# Wn7Pl3yg3CgugaHZ+b8Nm56MLekb8StuUU6iNLx/+Gwvn+hz8QRsL5GXG7OMhBpa
-# r3Dp6Ldyl3shOXdnASr2mvHbBPd/xXvmQo7xsOxFLi//aCr039VrbufCgOJu0W6b
-# Nb4s9wVPWZaXhRw7AGY=
+# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAVHqTxqqM95e2h8Sz6ge5R06u
+# KM95SRi0K7Unoxy7XW1AqLQ/L5yGUOW741LGxPWjP5GvP71hf1NdfEVegh0AmeaF
+# R1BQrE+s/EiOw8VUE/5Oen502la6FUwJN02SsZmg8S77MJpN+1AsTgnGZmx0u/xN
+# cCAUtaCLqTlv7zyfnOEfKhGd1thqjCcKhxjuB9GVL0+LbG1lVXDnOHtP6yu/454g
+# zjHtE0otKdeV89kYSD9YaIGS6UZxIRacjYNEvEgGT0djAtO9isnrLsO780Pw3nfc
+# VLWV+xGPYFtbtMawqJTuP8OR/wcVIghZ2isjBoQlxe2qbpH/3J763NjkhObqqX+S
+# lAamFKgJN5nLD15sfatf1MkRd2fwzI5/mAjsXEeMT/y71evsYwQMEyiOtE41hxz1
+# aDZuGL5+qlnCrakvTgmjQ73flFIh6FWqNw+okVYDvvlp+lBZueH53QcTgUu/9I/6
+# d203cyvfijck6lGMlCcLI1PfhJHQuxb2X0wbgFnGdWyCqKaOrHzoocYV7A+WFHb1
+# Vp6UkjwaEHLIRtyqjDoWH/8QVja3fdWyzwuoKLkptKMlRs+8gCjRiKKtuiY1qdh1
+# XM2PRJqCLv9UKwLJnbr7feOF86bTg3VAD/hEOURBlSmua+AD4ouSP+g7+QmxDAUV
+# KZWZhtS6s+78Vo5ANzg=
 # SIG # End signature block

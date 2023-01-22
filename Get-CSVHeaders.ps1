@@ -1,40 +1,56 @@
 <#
-    .SYNOPSIS
-        This script grabs all the headers from CSVs and outputs to a text file.
-    
-    .DESCRIPTION
-        Column A will be the filename of the CSV, and then subsequent columns will contain the header names.
-    
-    .PARAMETER CSVFolder
-        Please specify the folder in which you resursively want this script to search for CSVs and enumerate their headers to output them to a .txt file.
-    
-    .NOTES
-        ===========================================================================
-        Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2022 v5.8.200
-        Created on:   	2022-02-13 15:35
-        Created by:   	Andrew Rathbun, with help from people smarter than him
-        ===========================================================================
+.SYNOPSIS
+This script will search for CSV files in a specified folder and its subdirectories, and will enumerate the headers of the files to output them to a .txt file.
+
+.PARAMETER CSVFolder
+The folder in which the script will recursively search for CSV files.
+
+.EXAMPLE
+PS C:\> .\CSVHeaders.ps1 -CSVFolder "C:\CSVFiles"
+
+This will search for CSV files in the C:\CSVFiles folder and its subdirectories, and will output the headers of the files to a file named "CSVHeaders.txt" in the script's root directory.
+
+.NOTES
+===========================================================================
+Created with: 	SAPIEN Technologies, Inc., PowerShell Studio 2022 v5.8.200
+Created on:   	2022-02-13 15:35
+Created by:   	Andrew Rathbun, with help from people smarter than him
+===========================================================================
 #>
+
 param
 (
-    [Parameter(Mandatory = $true,
-               Position = 1,
-               HelpMessage = 'Please specify the folder in which you resursively want this script to search for CSVs and enumerate their headers to output them to a .txt file.')]
-    [String]$CSVFolder
+	[Parameter(Mandatory = $true,
+			   Position = 1,
+			   HelpMessage = 'Please specify the folder in which you recursively want this script to search for CSVs and enumerate their headers to output them to a .txt file.')]
+	[String]$CSVFolder
 )
 
-$CSVs = Get-Childitem $CSVFolder -Filter *.csv -Recurse
-
-foreach ($CSV in $CSVs)
+try
 {
-    $CSV.Name + "," + ((Get-Content $CSV.FullName | Select-Object -First 1)) | Out-File -Append -Encoding UTF8 -filePath "$PSScriptRoot\CSVHeaders.txt"
+	# Get all CSV files in the specified folder and its subdirectories
+	$csvFiles = Get-Childitem $CSVFolder -Filter *.csv -Recurse
+	
+	# Iterate over each CSV file
+	foreach ($csvFile in $csvFiles)
+	{
+		# Concatenate the file name and its first line (header)
+		$csvFile.Name + "," + ((Get-Content $csvFile.FullName | Select-Object -First 1)) |
+		# Append the concatenation to the CSVHeaders.txt file in the script's root directory
+		Out-File -Append -Encoding UTF8 -FilePath "$PSScriptRoot\CSVHeaders.txt" -Force
+	}
+}
+catch
+{
+	# Output an error message if an error occurs
+	Write-Error "An error occurred: $($_.Exception.Message)"
 }
 
 # SIG # Begin signature block
 # MIIpGgYJKoZIhvcNAQcCoIIpCzCCKQcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCIkXOlgznq4k3+
-# N6zjt49aoGoMHbEnAiP3yfrEhfIL6qCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAQ2MptpHjNkIxq
+# jxYKxabPft8PKxlg9RN/n2RnDY2rIqCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -135,23 +151,23 @@ foreach ($CSV in $CSVs)
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOmCS6CdEQqjh5p/MKzy2I3wG1J+XakWrfhM
-# 4XCfIUriMA0GCSqGSIb3DQEBAQUABIICAB5MPSa2rpwP0cmedlWTGppHvepr0An+
-# 5HuUsczLcpCLFFjJvRkjLMwHQVA6QqtoVe5nptieFnDb9vdE5pT57TY85MTa/8Ds
-# CzUhyxDqI//wcYQe6B/qdEtwROsBfv3nMBUidBRhx6z0VTnGYzdIqP+nI63OWyI4
-# MCNhDtw8ReoQybuDlOQMk4o0UuEwYYMAsOy5LlPwJ2Pabv1ebzvIGtsSfZ5VxW1X
-# LzPgcHoEGQlsGwtNHtXSGfNqNS7ksEc3gWt0TIbjMBkbInkYE2BsIxOxHrkqTaVx
-# gxOq+39+NrAp29a/AzO/vVEMjK52C3fDiKHFYlX9OR7WzqwPCERvsZTD2ZpueHnG
-# MBg3FHmCrT1wgSgonFYL8Yuxc6iGsR49uMFuIJH4ZvQ7I2I48hyPicz8g+fY7SAA
-# Otigk0uVqKlMipsW6WEeFUzq0Zu4u6neDHCs+IvFcM/h+1OVNlwTwLLGlqc1YdfY
-# W1CdrRN1lxcsW/zmOXkgHmjWNbZZyQZLqCuUiNNtqkz0F2L7XrHHx22Jwte4QFiS
-# BKOx9S4nIHwuT3VgSVd1yAdfJhLnDKAHpeTYk5OFZK2vvtKTqvkNLiJ47ooOLBdv
-# SCh4gPiT9nFvtQTEvHs79Li92xcRl/JhnfhZEbZi01rX0OZGiWmKW8Hjv/TYv57K
-# AgSpsUfSIcCMoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIOCA+jKy9S0a/axjPHv1HJhN7d4vJ0+Pxglx
+# afZMoMBTMA0GCSqGSIb3DQEBAQUABIICAApnwndUovYwOB7kIgRzcgR0bo0IBGjs
+# otq49etkXfrcHa17uFUD/PTepKAWDKz+S91IQpv5gcTij/4Qkjg2s0z8fIBbg/XT
+# i5oixBvFjvVoYFzpUu6QMeq+VS4mWwpZoRlc/2n+9eqJymdnWerHRO27Uc/HPjAI
+# 1obR+gM6Zyj0gLUd1wKBUiyOpFSs3eFGOaREv9g9z5LL630S3YhIb/jK/xHy7ja8
+# WK3OQEU2QSUL2OzWZImM0qkGH3l4iUer87JiipcOMO48+RPEzOXQv3lUXR/FgJNR
+# tvc74fplNT2QTM9CAzIBajCgu/8jAWHgGWkAUXsE3ZKF9GJAyJw4JdIfK/ejUNf8
+# Ti3TgNHaWu28VYeiyUvSaum2KiyQaz/Jnd0xIsfcwnH0dCQxa7VLyCL+dhJnaJPL
+# zSrV7Hf0C5XUml4dnIFpLoQS1luRCZp/RBvdf3ykhxw49/odr75/pJedvakM4LHW
+# Bk7YSbxLIgfnC85VlAJY23uRd8K4I25Nj18Jt5QKFIUF5AUECSwbfyeiMdK/nQE5
+# S70FxuEH5dHahAt5Dv2Aq6NWrQAWVSJIxqxSiKyLymn0yKMSxoKoDDoXnVaP+bKD
+# J+GhTv9NrlHsJ3+djOTlzqMGmzZqTq61CRqOeuyX6ZL1Nd2uO5TOhK6PQXGCc+OU
+# yzJIcVzZgE0LoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
 # oIITKjCCEyYCAQMxDzANBglghkgBZQMEAgIFADCB8AYLKoZIhvcNAQkQAQSggeAE
-# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgkufd+GevPInV
-# Oos57ALS1PyStoaQE7Mkmm9Z+uVgyBQCFQCBW+NGcP5Qe3QHu44wED9MG8Jr8hgP
-# MjAyMjA5MzAwMzA0NTNaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
+# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQglqj7GjvgpNI/
+# aBWXqvuXb+xVXee7WK+jPmd0eN0fm7MCFQCsV4zUgTnuXc1sDVnCXBnFKCr9OBgP
+# MjAyMzAxMjIwMjI5MTVaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
 # Y2hlc3RlcjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0
 # aWdvIFJTQSBUaW1lIFN0YW1waW5nIFNpZ25lciAjM6CCDeowggb2MIIE3qADAgEC
 # AhEAkDl/mtJKOhPyvZFfCDipQzANBgkqhkiG9w0BAQwFADB9MQswCQYDVQQGEwJH
@@ -232,23 +248,23 @@ foreach ($CSV in $CSVs)
 # Y2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1p
 # dGVkMSUwIwYDVQQDExxTZWN0aWdvIFJTQSBUaW1lIFN0YW1waW5nIENBAhEAkDl/
 # mtJKOhPyvZFfCDipQzANBglghkgBZQMEAgIFAKCCAWswGgYJKoZIhvcNAQkDMQ0G
-# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjA5MzAwMzA0NTNaMD8GCSqG
-# SIb3DQEJBDEyBDDEjbE0652RzLZT6v0WCbRSx7OdXAdYC0Kh41w/BvGN6cPmCC7+
-# 4CP3KIviQ7oO3wUwge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
+# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMzAxMjIwMjI5MTVaMD8GCSqG
+# SIb3DQEJBDEyBDDwzvz5ITQd3TflVemzotxZCpe58A2iG2pLnXxe1jEIqbrkJJc9
+# 3ra1n77xzsIWkpQwge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
 # nwga8LMY4YP4D3iBMIG8BBQC1luV4oNwwVcAlfqI+SPdk3+tjzCBozCBjqSBizCB
 # iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
 # cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
 # BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkCEDAPb6zd
-# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAVa9vtJXRnAbHwWMrKaskgQZP
-# iimb7QazF8d2an7Vy1mBTP3v8qtA2j9zbPP/tjFc5U3PiwpejdIZTON91i2FKWHl
-# 1YqZ3te41gyzON924+ch1N45OWSCS25GucmLlXxMceRYzYCkVN3t+NQcLom7M83m
-# qXPUUwu1KjOVDlV70++zrOXBj4+XCsb6ZE+52yK+qxEhBlr7c0rSq7KHDEUdp1RS
-# NPVouNEO7REGM5gWKiHW9u+bAOEwflX2Sc+iQPVObg7SKVph4WWpgF/xyfzK1TxR
-# oi9/cjxYNi4Mce4XvynNpvU9FVLOAriREpzhZtuDdTtkBXVG98k/rTGHPvveFEsB
-# rjf3Uq7YR3p0qwa1cWX9IGMvjmsyOVHPFD+QFCO1MDQznFsKstwOMCnfcXhFVumx
-# qBpxANbfp2s2GDN1WxkJeWK+UA2mPLubLYrMD7S2nUxAcu7LCZdQ0/+5CKmkInqr
-# limkqn/Lbob06qkiPhK5wwL8CgsIqSmtLT1wqfYtU9q9StfP9ZNw2prVh7wDIIcn
-# a3GMwC0SBbBGea4yWLMov8+Q5dTLKjRxAis94KH95SqDcqqfi5MX+XxjWgofoj/i
-# Jhin7iDAh98tEIEUO2p+nNBSWW0YR/j+R1cry1BDTt06/0S813ihgwq/nswRuqow
-# 0QTRUYGP7ITSKE8myZY=
+# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIARlNY8hm+H5lN5o3OMhsz87+B
+# zteV7EquCef1C2831zUzQvggrCJyZ9KX/sTdTJtB7BMQZgx+jz2iNdn6bEDE32hI
+# xZYhRblbsVANx9SvKTQOQ7qybILwH0NNwN5H3DBSiyp1IAg/qkRxqPt4FoH2/XLj
+# zY95tV/rV5YCzfB5ckbDXhJRBumetZJuNhYeVBrJMskLt6uXMgHsIGxYwgpLUhqz
+# jqNMflfgMPwO45GCVUuMv94KIayal4GI1YwWxkoRo6tCdu83ItRV0kqwxygv888v
+# 8TvW5yFr9/v4ln12+bzn8mNVAlJeKb16w/EdZCT3R/tj+RyVsrJencJ+k7R2YMeR
+# g/V9ugzs3Vy7/XHt+ZIGEZGOgGV4i2glIHnel5N4wS9fZHBMTOlTBi6lUexK3OAW
+# 8yIEHus7Tem783Ufi4BbU3iZm3eY7Ca3j5Xm1mVAVvUf1e8pUCCeOwmwv5LSMusM
+# TxJswWWza92edMxcDsKqNK5AStTTde4sQ39nvu8nED0c1AE5gR05N3WC3USQjyeU
+# wAmQeMeprdIHkJrJiuLt0RwyKGZ+IROzcfPbC6OMDodQO6hBFNN/FZYtFY3EFiJ0
+# ejQ5w7tLyNiMPLy9/xcQCfi+VoQQp+MqQQuRLj7PKBQ3mzfz4lIq9qVdEMIDdJpQ
+# O+cmnntFdPlhdTbus+o=
 # SIG # End signature block
