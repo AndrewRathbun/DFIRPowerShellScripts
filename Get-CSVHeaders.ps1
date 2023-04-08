@@ -40,10 +40,11 @@ try
 		Out-File -Append -Encoding UTF8 -FilePath "$PSScriptRoot\CSVHeaders.txt" -Force
 	}
 }
-catch
+catch [System.Exception]
 {
-	# Output an error message if an error occurs
-	Write-Error "An error occurred: $($_.Exception.Message)"
+	Write-Error "An error occurred while running this script"
+	Write-Error "Exception type: $($_.Exception.GetType().FullName)"
+	Write-Error "Exception message: $($_.Exception.Message)"
 }
 
 # SIG # Begin signature block
