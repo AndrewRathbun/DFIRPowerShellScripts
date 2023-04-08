@@ -1,4 +1,4 @@
-# PowerShell Try/Catch/Finally
+# PowerShell Script Parameters
 
 ## Code Snippet
 
