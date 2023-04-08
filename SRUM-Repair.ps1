@@ -30,96 +30,96 @@
 #>
 param
 (
-    [Parameter(Mandatory = $true,
-               Position = 1,
-               HelpMessage = 'Specifies the path to KAPE tout folder where the SRU folder is located')]
-    [String]$TargetPath,
-    [Parameter(Mandatory = $true,
-               Position = 2,
-               HelpMessage = 'Specifies the path for the working copy of the SRU folder and SrumECmd.exe Output')]
-    [String]$OutputPath,
-    [Parameter(HelpMessage = 'Switch parameter, used if the script is being run inside KAPE as a Module')]
-    [switch]$Kape,
-    [Parameter(HelpMessage = 'Switch parameter, used if the script is being run inside KAPE as a Module. This means this script will utilize the SrumECmd binary that resides within .\KAPE\Modules\bin')]
-    [String]$SRUMECmd = $(
-        if ($Kape)
-        {
-            # If being used as a KAPE module, $PSScriptRoot is .\KAPE\Modules\bin
-            (Get-ChildItem -Recurse -Path $PSScriptRoot -Include 'SrumECmd.exe').FullName
-        }
-        else
-        {
-            # Get path to SrumECmd.exe as user input
-            Read-Host -Prompt "Enter full path to the executable SrumECmd.exe"
-        }
-    )
+	[Parameter(Mandatory = $true,
+			   Position = 1,
+			   HelpMessage = 'Specifies the path to KAPE tout folder where the SRU folder is located')]
+	[String]$TargetPath,
+	[Parameter(Mandatory = $true,
+			   Position = 2,
+			   HelpMessage = 'Specifies the path for the working copy of the SRU folder and SrumECmd.exe Output')]
+	[String]$OutputPath,
+	[Parameter(HelpMessage = 'Switch parameter, used if the script is being run inside KAPE as a Module')]
+	[switch]$Kape,
+	[Parameter(HelpMessage = 'Switch parameter, used if the script is being run inside KAPE as a Module. This means this script will utilize the SrumECmd binary that resides within .\KAPE\Modules\bin')]
+	[String]$SRUMECmd = $(
+		if ($Kape)
+		{
+			# If being used as a KAPE module, $PSScriptRoot is .\KAPE\Modules\bin
+			(Get-ChildItem -Recurse -Path $PSScriptRoot -Include 'SrumECmd.exe').FullName
+		}
+		else
+		{
+			# Get path to SrumECmd.exe as user input
+			Read-Host -Prompt "Enter full path to the executable SrumECmd.exe"
+		}
+	)
 )
 
 # If SrumECmd.exe is not set, exit
 if ([string]::IsNullOrEmpty($SRUMECmd))
 {
-    Write-Host "SRUMECmd is not specificed or not found, exiting"
-    Exit
+	Write-Host "SRUMECmd is not specificed or not found, exiting"
+	Exit
 }
 
 # Check the path for the SrumECmd.exe is valid
 else
 {
-    if (Test-Path  $SRUMECmd -PathType Leaf)
-    {
-        Write-Host "SRUMECmd set to," $SRUMECmd
-    }
-    else
-    {
-        Write-Host $SRUMECmd" is NOT a valid path to SrumECmd.exe, exiting"
-        Exit
-    }
+	if (Test-Path  $SRUMECmd -PathType Leaf)
+	{
+		Write-Host "SRUMECmd set to," $SRUMECmd
+	}
+	else
+	{
+		Write-Host $SRUMECmd" is NOT a valid path to SrumECmd.exe, exiting"
+		Exit
+	}
 }
 
 # Try and copy the SRU folder from the TargetPath
 $sourceSRUFolder = Get-ChildItem -Path $TargetPath -filter "SRU" -Directory -Recurse | ForEach-Object { $_.FullName }
 if ($sourceSRUFolder)
 {
-    Write-Host "Target SRU directory found $sourceSRUFolder"
-    
-    if (Test-Path $OutputPath)
-    {
-        Write-Host "Output path already exists: $OutputPath"
-    }
-    else
-    {
-        New-Item $OutputPath -ItemType Directory | Out-Null
-        Write-Host "Output path ceated successfully: $OutputPath "
-    }
-    
-    # Make a copy of the files within the SRU directory
-    Copy-Item -Path $sourceSRUFolder\* -Destination $OutputPath
-    Write-Host "SRU files copied to $OutputPath"
+	Write-Host "Target SRU directory found $sourceSRUFolder"
+	
+	if (Test-Path $OutputPath)
+	{
+		Write-Host "Output path already exists: $OutputPath"
+	}
+	else
+	{
+		New-Item $OutputPath -ItemType Directory | Out-Null
+		Write-Host "Output path ceated successfully: $OutputPath "
+	}
+	
+	# Make a copy of the files within the SRU directory
+	Copy-Item -Path $sourceSRUFolder\* -Destination $OutputPath
+	Write-Host "SRU files copied to $OutputPath"
 }
 
 else
 {
-    Write-Host "No Target SRU directory found searching: $TargetPath"
-    Exit
+	Write-Host "No Target SRU directory found searching: $TargetPath"
+	Exit
 }
 
 # Try and copy the SOFTWARE registry hive
 $sourceConfigFolder = Get-ChildItem -Path $TargetPath -filter "config" -Directory -Recurse | ForEach-Object { $_.fullname }
 if ($sourceConfigFolder)
 {
-    Write-Host "SOFTWARE registry hive found and copied to $OutputPath"
-    Copy-Item -Path $sourceConfigFolder\SOFTWARE -Destination $OutputPath
+	Write-Host "SOFTWARE registry hive found and copied to $OutputPath"
+	Copy-Item -Path $sourceConfigFolder\SOFTWARE -Destination $OutputPath
 }
 else
 {
-    Write-Host "No SOFTWARE registry hive found at: $TargetPath"
+	Write-Host "No SOFTWARE registry hive found at: $TargetPath"
 }
 
 # Undo Read Only attributes to folder and all files therein
 $Folder = Get-Item -Path $OutputPath
 $Folder.Attributes = $Folder.Attributes -band -bnot [System.IO.FileAttributes]::ReadOnly
 Get-ChildItem $OutputPath -Recurse | ForEach-Object {
-    Set-ItemProperty -Force -Path $OutputPath\$_ -Name IsReadOnly -Value $False
+	Set-ItemProperty -Force -Path $OutputPath\$_ -Name IsReadOnly -Value $False
 }
 
 Set-Location -Path $OutputPath
@@ -136,9 +136,9 @@ $wshell = New-Object -ComObject wscript.shell;
 # Send ok button press to 'Warning' pop up window
 while ($count -lt 30 -and $window -eq $false)
 {
-    $window = $wshell.AppActivate('Warning')
-    Start-Sleep -Seconds 1
-    $count++
+	$window = $wshell.AppActivate('Warning')
+	Start-Sleep -Seconds 1
+	$count++
 }
 $wshell.SendKeys('~')
 
@@ -152,8 +152,8 @@ Start-Process -NoNewWindow $SRUMECmd -argumentlist "-d $OutputPath --csv $Output
 # SIG # Begin signature block
 # MIIpGgYJKoZIhvcNAQcCoIIpCzCCKQcCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCJ6GVqZxACg9my
-# GKwyjnPW6K3aS12daozhufY2/Jit1KCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAjxWxTaD7larJx
+# Siw/Os54TdrECsZa9TGPBu6+gcqKVKCCEgowggVvMIIEV6ADAgECAhBI/JO0YFWU
 # jTanyYqJ1pQWMA0GCSqGSIb3DQEBDAUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQI
 # DBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoM
 # EUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2Vy
@@ -254,23 +254,23 @@ Start-Process -NoNewWindow $SRUMECmd -argumentlist "-d $OutputPath --csv $Output
 # VQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1nosluv9R
 # C3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoHwwEAYKKwYBBAGCNwIBDDECMAAwGQYJ
 # KoZIhvcNAQkDMQwGCisGAQQBgjcCAQQwHAYKKwYBBAGCNwIBCzEOMAwGCisGAQQB
-# gjcCARUwLwYJKoZIhvcNAQkEMSIEIFVFZa42sqzjkgPloOvVNGeB0W7AGPXhGiWi
-# wM83gkpzMA0GCSqGSIb3DQEBAQUABIICACDRGJrjcQtpMsCYQITQCdefxLYawAy6
-# 1BsB+bVVk2+WQbttPsLC4hN0SPxJ5fd0WSoiXGJo5CUeRlfJ4bmwNVYaColaB+EZ
-# 0P4t/jlPSX+gBjdAyezOCKT8quFQLu5NBdJ7X7bJBP+w+fOM7uJp79+JuoH6efgv
-# f6VksYimOm2HLJ/wBGyVOdpy182/9PGNCAunMWoyU2YzwM1ASWpaR3gc5wfEucm+
-# yXuCMUn/30Au5XUJw93jI3ImsfNrAqHmncWepMKoDxz4Gb+fPd6wn4UcZgdyjYoI
-# 6tnnBN1tKU4OyY421o4JxA8eBBvwg9A/XiJk6r1zm3+hbygGgAvS9RWDVCGqZ3Vh
-# GdKw60SpO+CTeA8xwtlpk/rYj7M5e1tlgYEw5EbC5TfbwwBcUhecRhh9PSooPkGI
-# BVRjzn+XA1RAobUiwyhScup85H76adijOqBIMZ6lHa2ULkDKAcaDIqn7KoPxF1e5
-# sGl86FG94gojsDPrMQvESr1EewsktmLPQB3AhUV7hW17qGyEAJh/q4Vcvg/Tq4sL
-# XlA26MkBg+hqp7rY+QGcrocGHl9tbQT6XDaRIak6fJ9KDUirWe89/QBBgjKdcZLV
-# RUysKqDH7nSD+ZkYZ5UB2Pu2ufIunp29DazHmb3nbPb/QLBo+KrU1bUqjyaxWpUB
-# nA0822FlVlsEoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
+# gjcCARUwLwYJKoZIhvcNAQkEMSIEIKmvUqU87XPSi7JZHhRwxVyCSkDtQdlWfGBM
+# YYqLFmjjMA0GCSqGSIb3DQEBAQUABIICAJRNSqBb4o7Jgo6Sh7PuEhY7i3uxJQxb
+# F3JeGedhT7UIabQNToExm49Un14iJsTRoFN5fNFXW82RfiPPTfnzKfgl6tUpdS0g
+# QDcqG/9DAOR54DvEPplxTAQMslL1Brx98qdc43im3DWmEQaclILJjMoi29wNfAai
+# OxyKn5X7huCvY+BXn48O7L7PL3v8cv0H3NzgaK/JCiPYtZp/+DOKgmydNz9z99GR
+# Zs+7KW5hnK8eECj4/SYWVcWAblWZ1hWlt9vfODYnCmOfQP/TWwF5RboJ42TWL6u0
+# eucnxJokNfd8WP0A/amhiQgQWcqAYsi2yFKqvTj9Xp0XL5F3oZSZhKpy1k5TKNKz
+# K99tsopHfeUljLrP6L7sdrU/PAY27eOmXLmdnEYFuv9geZIwi/JLjfG+7/xZC68D
+# CYqqvjvEr2JRoCVfDKjZA++nyY6hyes+hvgiRo9+Jiptas9syj29FX95Ffe8P4Jr
+# upZtFtl1BVAjMUBhjev4Ed7aMpavZ7C17HRtvRL9D856q/DIeC9N4Ep/PkiEJ4Nw
+# 71hPiw4sd9LCBro3Oc4Ay2W5/leLeEUvMiIF7qsbNKgxIDDBKubge2pF0qk1zCRh
+# cVAj2DzhGU3HLsvSmKPOBne1V//sQy4hWskKaMDmsnKk8UO1+wsNhNZoArwif8UD
+# bpTNxoryUurSoYITUTCCE00GCisGAQQBgjcDAwExghM9MIITOQYJKoZIhvcNAQcC
 # oIITKjCCEyYCAQMxDzANBglghkgBZQMEAgIFADCB8AYLKoZIhvcNAQkQAQSggeAE
-# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgOLARiU/pEJ8j
-# HWihE24oAtbsIEIHcpjedkkfj1pdwC0CFQD+yCjdoX/fXjZOJ4Frr+KbrOphhRgP
-# MjAyMjA5MDExMjMwMDZaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
+# gd0wgdoCAQEGCisGAQQBsjECAQEwMTANBglghkgBZQMEAgEFAAQgW7GnaqfAdh0l
+# 91r1G3v8jkdwzSGO4LD2FqBWjbdFNcACFQDepuZSfxWFZ70shghTmmQi3l/gmBgP
+# MjAyMzA0MDgwMjE3MjJaoG6kbDBqMQswCQYDVQQGEwJHQjETMBEGA1UECBMKTWFu
 # Y2hlc3RlcjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVkMSwwKgYDVQQDDCNTZWN0
 # aWdvIFJTQSBUaW1lIFN0YW1waW5nIFNpZ25lciAjM6CCDeowggb2MIIE3qADAgEC
 # AhEAkDl/mtJKOhPyvZFfCDipQzANBgkqhkiG9w0BAQwFADB9MQswCQYDVQQGEwJH
@@ -351,23 +351,23 @@ Start-Process -NoNewWindow $SRUMECmd -argumentlist "-d $OutputPath --csv $Output
 # Y2hlc3RlcjEQMA4GA1UEBxMHU2FsZm9yZDEYMBYGA1UEChMPU2VjdGlnbyBMaW1p
 # dGVkMSUwIwYDVQQDExxTZWN0aWdvIFJTQSBUaW1lIFN0YW1waW5nIENBAhEAkDl/
 # mtJKOhPyvZFfCDipQzANBglghkgBZQMEAgIFAKCCAWswGgYJKoZIhvcNAQkDMQ0G
-# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMjA5MDExMjMwMDZaMD8GCSqG
-# SIb3DQEJBDEyBDC4eli66fOOGP+uWivegem9xKZ/BEgIU24bxacctUDctDlImvK3
-# s5jZOt0ZJ2Vlv6owge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
+# CyqGSIb3DQEJEAEEMBwGCSqGSIb3DQEJBTEPFw0yMzA0MDgwMjE3MjJaMD8GCSqG
+# SIb3DQEJBDEyBDBEPBQ4co0I0fn40gXQXvaNQ6TMFFFqVSZKjAU8cCU2H+lLdUP9
+# tsdvNpRUaTzQ4lMwge0GCyqGSIb3DQEJEAIMMYHdMIHaMIHXMBYEFKs0ATqsQJcx
 # nwga8LMY4YP4D3iBMIG8BBQC1luV4oNwwVcAlfqI+SPdk3+tjzCBozCBjqSBizCB
 # iDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCk5ldyBKZXJzZXkxFDASBgNVBAcTC0pl
 # cnNleSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxLjAsBgNV
 # BAMTJVVTRVJUcnVzdCBSU0EgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkCEDAPb6zd
-# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAgmsFQ424VrjaAi03Httpf0S8
-# W5t34KiPa8jYVblu+OHF072R/8kfnfaw2/V2Z/6I5dhkPtoxpt+qHCm7TAIpx8FB
-# uuexYxN5MekqfV78xn3GrEmLVFhR76OEJtmwXv9Df4fAGqbSXU5fDSQLweIA8Qk1
-# YX1cQWC/I6SwCrzBrPjzP7GJ07RrPY4FwgmWP/TyxKzhxkVZV5Va6NaX0EHmvDMi
-# qvxfGV1klfVsOSz1pDeYw0Qjt9LW6xh+kG/3YdyHNbrlVeFpl+KGJo4MGmN2e9y/
-# Iub8MFt8e6Cm65kxKrtqbq7VhnUTADDozneBbmqP0FlSeh+7x7STKjrtnmlpLy0o
-# qOkigMjwQM+pemIvFVEli4ZkURt7/A/odccm4+RNkVMN8uydKN7/kAlLZuKRKC+O
-# QO2kih8L1pkfwxeUgEUjvetLucaJ5OlvJS3UQL52lSBR3j5Lxf4he1tEVEr/OWIs
-# 67KgfxrTh6G5mV6EhTzIG5sqnNTqij7EdIy+5kcyq2xugITgxoN5Mvxn1LSb1bl3
-# SEwRzuW+CYvZh/7mNI3s6yaE/olAINlm4yDrVKPiXcl1YX+CR78m6kMf1YNCkgNx
-# ESOFjMB7MxmZKZ4L4ls6lvH6Z1bOM+gyW4ZR5jmiIR0m8N6mGyqo/Ox1E7/Cxwbu
-# pC9XZynutbvyKgMugpA=
+# Zph0fKlGNqd4LbkwDQYJKoZIhvcNAQEBBQAEggIAO768IbXmP04XZu+bazKJfUqp
+# AdWHv3M0sywvqqUYFOh7winJ66WcrM90wd46rfkQ2QhZr0ef3B2HaWJUqXT9glgP
+# yd3rVtxuLCDjKJnqVqCdlQz5be58MdiFdKueshlovys9M0eClZ+DCiyzoHS26MnR
+# Qr2H1nb2g+DfMdg6AOWAAWQeD0FUDX+Knxg0USYU+EeLj3O0gPNxHPtMdpltlD/m
+# Bu6t7c0AlZSb/mzDadMHNmHRT0MoIufXOYiqXQp6PGCnSH3vuGxf0/ata8ZEfXpx
+# FX6X83heQv4jh173iZV4dXI3LKL+q4Iz82W43RpgGPbmlOtdcVji28QofVxfp9Mh
+# U9ZQ/h6w+iNwcl7pHKmBg3kO7XxF67XCULsvViXrN4DKwpSiftgG5mIfk3RkrHAq
+# W55+F0XM6Jh0Bqb1SRCGWcmH9qGElrNtJTzmq0Zdt5MNz78ed2GLBGYjbqxhzyrR
+# yBe8FaUzXDhuOU7/N83yl8q+NJeXPtk+tameH2E9/scvtxY42bkJvVe8xpA2+GEl
+# KmIrxohExTp/GRUxmw+/6g020gd6O/xDXUZIzWole0Zu4Qe5AcbDk8VpmbApeMJw
+# hnWi0dWqBddLSiMXXjEUpkNxP8BgBd81xLMKXXZJBS/Z3E48PXUxNUFkeefvZHZS
+# C0Hrw6swkYH088hE9m8=
 # SIG # End signature block
