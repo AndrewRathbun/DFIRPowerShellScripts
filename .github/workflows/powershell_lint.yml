@@ -32,5 +32,5 @@ jobs:
     - name: Run PSScriptAnalyzer
       run: |
         pwsh -Command "
-        Get-ChildItem -Recurse *.ps1 | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName }
+        Get-ChildItem -Recurse *.ps1 | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ }
         "
