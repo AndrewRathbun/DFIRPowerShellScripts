@@ -1,0 +1,36 @@
+name: PowerShell Lint
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup PowerShell
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '3.1.x'
+
+    - name: Install PSScriptAnalyzer
+      run: |
+        pwsh -Command "
+        Install-PackageProvider -Name NuGet -Force
+        Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+        Install-Module -Name PSScriptAnalyzer -Force
+        "
+
+    - name: Run PSScriptAnalyzer
+      run: |
+        pwsh -Command "
+        Get-ChildItem -Recurse *.ps1 | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName }
+        "
