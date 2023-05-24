@@ -29,9 +29,9 @@ jobs:
         Install-Module -Name PSScriptAnalyzer -Force
         "
 
-- name: Run PSScriptAnalyzer
-  uses: microsoft/psscriptanalyzer-action@v1.0
-  with:
-    path: .\
-    recurse: true
-    output: results.sarif
+    - name: Run PSScriptAnalyzer
+      uses: microsoft/psscriptanalyzer-action@v1.0
+      with:
+        path: .\
+        recurse: true
+        output: results.sarif
