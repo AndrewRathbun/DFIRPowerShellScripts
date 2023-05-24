@@ -33,7 +33,7 @@ jobs:
       run: |
         pwsh -Command "
         if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
-          Install-Module -Name PSScriptAnalyzer -Force -Confirm:$false
+          Install-Module -Name PSScriptAnalyzer -Force -Confirm:`$false
         }
-        Get-ChildItem -Recurse *.ps1 | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ }
+        Get-ChildItem -Recurse *.ps1 | ForEach-Object { Invoke-ScriptAnalyzer -Path `$_ }
         "
