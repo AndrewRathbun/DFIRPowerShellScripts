@@ -29,11 +29,9 @@ jobs:
         Install-Module -Name PSScriptAnalyzer -Force
         "
 
-    - name: Run PSScriptAnalyzer
-      run: |
-        pwsh -Command "
-        if (-not (Get-Module -ListAvailable -Name PSScriptAnalyzer)) {
-          Install-Module -Name PSScriptAnalyzer -Force -Confirm:`$false
-        }
-        Get-ChildItem -Recurse *.ps1 | ForEach-Object { Invoke-ScriptAnalyzer -Path `$_ }
-        "
+- name: Run PSScriptAnalyzer
+  uses: microsoft/psscriptanalyzer-action@v1.0
+  with:
+    path: .\
+    recurse: true
+    output: results.sarif
