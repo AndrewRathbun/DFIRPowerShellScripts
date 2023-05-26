@@ -19,10 +19,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Update PowerShellGet
-      run: |
-        pwsh -Command "Update-Module -Name PowerShellGet -Force"
-
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
       with:
