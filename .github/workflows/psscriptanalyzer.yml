@@ -1,21 +1,36 @@
-  lint-with-PSScriptAnalyzer:
-    name: Install and run PSScriptAnalyzer
+name: Lint with PSScriptAnalyzer
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Install PSScriptAnalyzer module
         shell: pwsh
         run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module PSScriptAnalyzer -ErrorAction Stop
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-Module -Name PSScriptAnalyzer -Force
+
       - name: Lint with PSScriptAnalyzer
         shell: pwsh
         run: |
-          Invoke-ScriptAnalyzer -Path *.ps1 -Recurse -Outvariable issues
-          $errors   = $issues.Where({$_.Severity -eq 'Error'})
-          $warnings = $issues.Where({$_.Severity -eq 'Warning'})
+          Set-StrictMode -Version Latest
+          $issues = Invoke-ScriptAnalyzer -Path ./**/*.ps1 -Recurse -ErrorVariable lintErrors
+          $errors = $issues | Where-Object { $_.Severity -eq 'Error' }
+          $warnings = $issues | Where-Object { $_.Severity -eq 'Warning' }
+
           if ($errors) {
-              Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total." -ErrorAction Stop
+            Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+            exit 1
           } else {
-              Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+            Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
           }
+          exit 0
