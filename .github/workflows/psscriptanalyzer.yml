@@ -27,10 +27,10 @@ jobs:
           $errors = $issues | Where-Object { $_.Severity -eq 'Error' }
           $warnings = $issues | Where-Object { $_.Severity -eq 'Warning' }
 
-          if ($errors.Length -gt 0) {
-            Write-Error "There were $($errors.Length) errors and $($warnings.Length) warnings total."
+          if ($errors.Count -gt 0) {
+            Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total."
             exit 1
           } else {
-            Write-Output "There were $($errors.Length) errors and $($warnings.Length) warnings total."
+            Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
           }
           exit 0
