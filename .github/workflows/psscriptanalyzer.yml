@@ -36,12 +36,14 @@ jobs:
           $errors = $issues | Where-Object { $_.Severity -eq 'Error' }
           $warnings = $issues | Where-Object { $_.Severity -eq 'Warning' }
 
-          if ($errors.Count -gt 0) {
+          if ($errors -and $errors.Count -gt 0) {
             Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total."
             Write-Output $errors.ToString()
             exit 1
-          } else {
+          } elseif ($warnings -and $warnings.Count -gt 0) {
             Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+          } else {
+            Write-Output "No linting errors or warnings found."
           }
 
       - name: Run Pester Tests
