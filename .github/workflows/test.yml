@@ -70,4 +70,16 @@ runs:
         $htPSA = [ordered]@{ Path = '${{ inputs.path }}'; }
         Write-Output "Modules installed, now running tests."
         if(![string]::IsNullOrEmpty('${{ inputs.customRulePath }}')) { $htPSA.add('CustomRulePath', @(${{ inputs.customRulePath }})) }
-        if(![string]::IsNullOrEmpty('${{ inputs.recurseCustomRulePath }}')) { $htPSA.add('Recurse
+        if(![string]::IsNullOrEmpty('${{ inputs.recurseCustomRulePath }}')) { $htPSA.add('RecurseCustomRulePath', $true) }
+        if(![string]::IsNullOrEmpty('${{ inputs.excludeRule }}')) { $htPSA.add('ExcludeRule', @(${{ inputs.excludeRule }})) }
+        if(![string]::IsNullOrEmpty('${{ inputs.includeDefaultRules }}') -and '${{ inputs.includeDefaultRules }}' -ne 'false') { $htPSA.add('IncludeDefaultRules', $true) }
+        if(![string]::IsNullOrEmpty('${{ inputs.includeRule }}')) { $htPSA.add('IncludeRule', @(${{ inputs.includeRule }})) }
+        if(![string]::IsNullOrEmpty('${{ inputs.severity }}')) { $htPSA.add('Severity', @(${{ inputs.severity }})) }
+        if(![string]::IsNullOrEmpty('${{ inputs.recurse }}') -and '${{ inputs.includeDefaultRules }}' -ne 'false') { $htPSA.add('Recurse', $true) }
+        if(![string]::IsNullOrEmpty('${{ inputs.suppressedOnly }}')) { $htPSA.add('SuppressedOnly', $true) }
+        if(![string]::IsNullOrEmpty('${{ inputs.fix }}')) { $htPSA.add('Fix', $true) }
+        if(![string]::IsNullOrEmpty('${{ inputs.enableExit }}')) { $htPSA.add('EnableExit', $true) }
+        if(![string]::IsNullOrEmpty('${{ inputs.settings }}')) { $htPSA.add('Settings', '${{ inputs.settings }}') }
+        $htCTS = [ordered]@{ FilePath = '${{ inputs.output }}'; }
+        if(![string]::IsNullOrEmpty('${{ inputs.ignorePattern }}')) { $htCTS.add('IgnorePattern', '${{ inputs.ignorePattern }}') }
+        Invoke-ScriptAnalyzer @htPSA | ConvertTo-SARIF @htCTS
