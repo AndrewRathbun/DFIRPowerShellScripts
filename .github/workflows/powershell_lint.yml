@@ -33,11 +33,8 @@ jobs:
         "
 
     - name: Run PSScriptAnalyzer
-      uses: microsoft/psscriptanalyzer-action@v1.0
-      with:
-        path: .\
-        recurse: true
-        output: results.sarif
+      run: |
+        pwsh -Command "Invoke-ScriptAnalyzer -Path .\ -Recurse -ErrorVariable lintErrors | ConvertTo-SARIF -OutputPath results.sarif"
 
     - name: Display SARIF results
       run: |
