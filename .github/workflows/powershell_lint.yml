@@ -11,10 +11,17 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: pwsh
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+
+    - name: Update PowerShellGet
+      run: |
+        pwsh -Command "Update-Module -Name PowerShellGet -Force"
 
     - name: Setup .NET
       uses: actions/setup-dotnet@v2
