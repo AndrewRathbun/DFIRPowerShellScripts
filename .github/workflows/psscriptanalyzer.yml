@@ -36,12 +36,15 @@ jobs:
           $errors = $issues | Where-Object { $_.Severity -eq 'Error' }
           $warnings = $issues | Where-Object { $_.Severity -eq 'Warning' }
 
-          if ($errors -and $errors.Count -gt 0) {
-            Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+          $errorCount = ($errors | Measure-Object).Count
+          $warningCount = ($warnings | Measure-Object).Count
+
+          if ($errorCount -gt 0) {
+            Write-Error "There were $errorCount errors and $warningCount warnings total."
             Write-Output $errors.ToString()
             exit 1
-          } elseif ($warnings -and $warnings.Count -gt 0) {
-            Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+          } elseif ($warningCount -gt 0) {
+            Write-Output "There were $errorCount errors and $warningCount warnings total."
           } else {
             Write-Output "No linting errors or warnings found."
           }
