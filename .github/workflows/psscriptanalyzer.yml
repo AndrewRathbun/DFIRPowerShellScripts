@@ -1,4 +1,5 @@
 name: Lint with PSScriptAnalyzer
+
 on:
   push:
     branches:
@@ -13,6 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Cache PowerShell Modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.local/share/powershell/Modules
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/PSScriptAnalyzer.psd1') }}
+          restore-keys: |
+            ${{ runner.os }}-modules-
+          
       - name: Install PSScriptAnalyzer module
         shell: pwsh
         run: |
@@ -29,8 +38,15 @@ jobs:
 
           if ($errors.Count -gt 0) {
             Write-Error "There were $($errors.Count) errors and $($warnings.Count) warnings total."
+            Write-Output $errors.ToString()
             exit 1
           } else {
             Write-Output "There were $($errors.Count) errors and $($warnings.Count) warnings total."
           }
-          exit 0
+
+      - name: Run Pester Tests
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          Install-Module -Name Pester -Force
+          Invoke-Pester -Output Detailed
