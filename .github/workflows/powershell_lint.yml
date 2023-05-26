@@ -38,3 +38,13 @@ jobs:
         path: .\
         recurse: true
         output: results.sarif
+
+    - name: Display SARIF results
+      run: |
+        cat results.sarif
+
+    - name: Store SARIF results
+      uses: actions/upload-artifact@v2
+      with:
+        name: lint-results
+        path: results.sarif
