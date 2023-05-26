@@ -41,10 +41,17 @@ jobs:
 
           if ($errorCount -gt 0) {
             Write-Error "There were $errorCount errors and $warningCount warnings total."
-            Write-Output $errors.ToString()
+            Write-Output "Error Details:"
+            $errors | ForEach-Object {
+              Write-Output $_.ToString()
+            }
             exit 1
           } elseif ($warningCount -gt 0) {
             Write-Output "There were $errorCount errors and $warningCount warnings total."
+            Write-Output "Warning Details:"
+            $warnings | ForEach-Object {
+              Write-Output $_.ToString()
+            }
           } else {
             Write-Output "No linting errors or warnings found."
           }
