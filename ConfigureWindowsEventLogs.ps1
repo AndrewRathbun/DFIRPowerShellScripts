@@ -137,11 +137,15 @@ function Expand-PowerShellLogging
 	[CmdletBinding()]
 	param ()
 	
+	$powerShellModuleLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
+	$powerShellModuleLoggingValueName = 'EnableModuleLogging'
+	
 	# Enable PowerShell Module logging
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -Name "EnableModuleLogging" -Value 1
+	$powerShellModuleLoggingValueName = 'EnableModuleLogging'
+	Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "" -Value 1
 	
 	# Check if ModuleLogging is enabled
-	if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging").EnableModuleLogging -eq 1)
+	if ((Get-ItemProperty -Path "$powerShellModuleLoggingPath").$powerShellModuleLoggingValueName -eq 1)
 	{
 		Log -logFile $logFile -msg "PowerShell Module logging enabled"
 	}
@@ -150,10 +154,12 @@ function Expand-PowerShellLogging
 		Log -logFile $logFile -msg "Failed to enable PowerShell Module logging"
 	}
 	
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames" -Name "*" -Value "*"
+	$powerShellModuleLoggingModuleNamesPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames'
+	
+	Set-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath" -Name "*" -Value "*"
 	
 	# Check if all modules are now logged
-	if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames").'*' -eq "*")
+	if ((Get-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath").'*' -eq "*")
 	{
 		Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
 	}
@@ -162,11 +168,14 @@ function Expand-PowerShellLogging
 		Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
 	}
 	
+	$powerShellScriptBlockLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
+	$powerShellScriptBlockLoggingValueName = 'EnableScriptBlockLogging'
+	
 	# Enable PowerShell Script Block logging
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -Name "EnableScriptBlockLogging" -Value 1
+	Set-ItemProperty -Path "$powerShellScriptBlockLoggingPath" -Name "$powerShellScriptBlockLoggingValueName" -Value 1
 	
 	# Check if ScriptBlockLogging is enabled
-	if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging").EnableScriptBlockLogging -eq 1)
+	if ((Get-ItemProperty -Path "$powerShellScriptBlockLoggingPath").$powerShellScriptBlockLoggingValueName -eq 1)
 	{
 		Log -logFile $logFile -msg "PowerShell Script Block logging enabled"
 	}
@@ -208,11 +217,14 @@ function Enable-CommandLineAuditing
 	[CmdletBinding()]
 	param ()
 	
+	$commandLineAuditingPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit'
+	$commandLineAuditingValueName = 'ProcessCreationIncludeCmdLine_Enabled'
+	
 	# Enable command line auditing
-	Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" -Name "ProcessCreationIncludeCmdLine_Enabled" -Value 1 -Type DWord -Force
+	Set-ItemProperty -Path "$commandLineAuditingPath" -Name "$commandLineAuditingValueName" -Value 1 -Type DWord -Force
 	
 	# Check if command line auditing was enabled
-	if ((Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit").ProcessCreationIncludeCmdLine_Enabled -eq 1)
+	if ((Get-ItemProperty -Path "$commandLineAuditingPath").$commandLineAuditingValueName -eq 1)
 	{
 		Log -logFile $logFile -msg "Command line auditing enabled successfully"
 	}
@@ -342,8 +354,8 @@ finally
 # SIG # Begin signature block
 # MIIviwYJKoZIhvcNAQcCoIIvfDCCL3gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCCqB5mfFtElV5cO
-# 3eULqUA3XhtLP2yYTe0o4EvknYtlfaCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDBeWhgs/mq/qwX
+# VEodJ6nJQHYgjmwe4IGTuhlM8wooraCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -563,35 +575,35 @@ finally
 # Bk0CAQEwaDBUMQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVk
 # MSswKQYDVQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1
 # nosluv9RC3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoEwwGQYJKoZIhvcNAQkDMQwG
-# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEICsFhQH4syIhXgOwsLuU+dh0S9pO
-# agiqTzDeGRT7LcMqMA0GCSqGSIb3DQEBAQUABIICAKhITz/IVz4hY62QyWkiQBca
-# wOj2y/Syosf5LkJ76kxtk2atkOblGkmKu7DHIwTcRRPzB/IE7SJ95Gg91OUpYri+
-# g7sIOlVSvl8a3jLkgkvmiZTIIXKUBbop88Napk00upgTAvpL52qm5I6cyrFVUZ8u
-# xkG6iCrqe6/5W8JNo1B20gXp2xePL60HUCDDUlk7LjCoN7Fk2XgEpqDb9J9mpm+/
-# DsiTkQxRKNk47h/MYidnbDn6IHFopYw81aRMoAHZyamQnLZlswYOcc+T5Rum9dg+
-# JOeE0GuuSsRB5jCbRP0xP8d7ExJ0dJOxGK3ZvrEgFbt6JbHJdvoLM2DKy2dAmAKj
-# XrIb4I7RJ8W/0qps2hnCG7Fbqk6eEA4H9FbL0Ie0dAeKfIthy697dPUsqycY7JUc
-# gGMibcqK49rI1PkIxgyLfEy0bCbjDfmCyXjlNvOF/A2JR6AZ2+Vz1x2SUtG3dXuf
-# N+rI68GvHQnxAqFyYzpgigpIJuV8/AqM3R+bgLus53QWF3BG2e52E5TGpjXGdhyN
-# BKgD7QZyb8nW9fnlCq3o2iBXgdDgEd8n7XC9h/157VTvkohZKPWmq1O3/eO8TgNN
-# dqI60KGrs6tebgw+7M3RfAusu0eBVZye6LmJToSEeRNBRCeCZVF8KwEEGz7s3PwA
-# EMU9b1vMTHQhCawm/Pq9oYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
+# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIDcRM2bi/OjgGt/NDc9Fwi2xb4dw
+# ntS2SOspN2MLkW4hMA0GCSqGSIb3DQEBAQUABIICAAOFzOzfxBnKkL1VcByzRXy8
+# 6AdFf92GIZCtr0YGTH6wBmtW1q6yBkLPum+fIhh/46PV0p3BDD9OkB8kP/xzrkzZ
+# NsTPG7gk1nnh2qgJTjzWjqHkIdsuL6rvnUdFUmJ64LKQTTh+pXi4joUOEKltHwjk
+# 0jU3BJ88FF747LoLVUWJGRQS1JtRUQmLdqxRF0SEezVWCRzAmQHCw5kMn8dOXJMS
+# 7QTAbC7/0RpYCxTwlHeNzM/EPoraXdJrjz5nU3YvvPRrXvRvnN62HO7/VZTneKjr
+# 7AUuaMwSG2IL/21ihlnGoeN7kxxY+vVFgDowqDa5yPYhvqNSaStbPl4EA7vMvJUi
+# siW6KpoDaS5q3n35txVD/GxStP6BaLtlvxp//gmIVd7xdbbArwCOpyIaTGtMRmq3
+# TzTUeFt6eQeRAQyEBlx3hVesKkjBKdLP8d4axQl0T0+MnZCOd+LdA7rbIZItZCO5
+# QGXAWG1VcTNbgVWSR+97TO6gusZzxXpeOw6m6Ai+MVy5LQ3+xY3ioxh0QqMCXuI+
+# u6HZyeULD9zjhZ/vUb0D3UR+HQ2ub7F08mHGOgCyNcn0vazxKd91XJ5nwyc/ngsh
+# YjjSvyaoDAPjrVUSU9zBLOBkAlRM/njN+Va2LZaXjWf6Sp7AQxAdq+T1lssIeiQU
+# YFNqnhjYSJp8nliTDo/OoYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
 # WzELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNV
 # BAMTKEdsb2JhbFNpZ24gVGltZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAFI
 # kD3CirynoRlNDBxXuCkwCwYJYIZIAWUDBAIBoIIBPTAYBgkqhkiG9w0BCQMxCwYJ
-# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTYwNDEwMTVaMCsGCSqGSIb3
+# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTYxNDEwMTBaMCsGCSqGSIb3
 # DQEJNDEeMBwwCwYJYIZIAWUDBAIBoQ0GCSqGSIb3DQEBCwUAMC8GCSqGSIb3DQEJ
-# BDEiBCCvoDr0HChyek2d1YwY6eC4ersMiPB5P9ntTN5KmgKD+TCBpAYLKoZIhvcN
+# BDEiBCB3axrgFB/dP4xTQ227BePzOSQFrZpHbAQIgak5Mus03DCBpAYLKoZIhvcN
 # AQkQAgwxgZQwgZEwgY4wgYsEFDEDDhdqpFkuqyyLregymfy1WF3PMHMwX6RdMFsx
 # CzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYDVQQD
 # EyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBDQSAtIFNIQTM4NCAtIEc0AhABSJA9
-# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgKBuvgLRVlqepYGzspB2F3FI
-# z/v9S/KEN9P58SoZcROo1OLUarYA6GQ1a85O3ieqPQNDfxyu+bownihmkhWlF6HT
-# MOZCwMF+u/FxLpPUzZG/tShdSJ+HuDZUnNT6WcomxqlqUFRMtFhjdNbPrcd2CKiZ
-# SdnVzmstReTNUUb5h4r1bNERVeodtuYgCWCrwTPDwf4jQ39sItqHw7Dp17g64cFJ
-# LblV68wAAPYMvCswF0USz8atif6QnI1DH2vX2rjh36qSB1PMLhIj8D3rUt5UoO/t
-# KD7O0N7XFbJx5RgqDzQm4zB9bDxsFBsWvZbHROr+xMbv8/NRwiVoraA2XAhXXs7E
-# eGjOruFN5x88NiYVS9o6jcMhECwH0jfvzHgDjLEZEaAMzsqzw/E+Kzf6TA3buZRN
-# 287uw+UhFY6uBgPIV94AHj9ZeXMgbiNP2BQm6AiY0JDTJGttg6hFdbUcXYR0myTB
-# HXhlArFsRr3raWpyE5iUSN/FBWII4cahlqYoL/6d7A==
+# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgBC68TdMOOrA4ziFbTm1ZRzC
+# Q5u7Se4xpoaBdjLvQ+S4b/32Ez6/XfmqA2007QoePs3CuEf/S2LwpJXfb1GXFWZS
+# 9TcCxrs0rqzE/Vv5jPQ/enlcO6hRqMJw+9Q1SZTeT3eKS7oEi6yDQqr1GWlTzqcP
+# gnDcdX29xUlJ9iDgGI3mw2TRlAMo4XwibVdURKwmNKDk64OQ5R/sJ52mE5YuGfpF
+# w5HeCXXEj0+kyFcsXUn6uI8ajOsQFV0BbbfSeNK66azp1SklsDJfJGZfSpT1/jZj
+# LCq8J28lfx0xDoET4Z20MPP5Y/b6C61c2aboBr+vOU2AZUnvSRq8ET1CnCmauZqz
+# srZrB1+7E/rouRSJqonWWp6IRHQVtdXn5L1ke0WWOUJBAFU7id3g5aguIgS70zav
+# L2LVhT1//6WFcKPT+FSCaajKoDhuo1Ya5Cbrx7qzWPa8WMecJfQJ+coy0m5XUyNJ
+# zFEFNJ0npedVHxikhn3jrcZq5iPNopqZhPxBG9u+gg==
 # SIG # End signature block
