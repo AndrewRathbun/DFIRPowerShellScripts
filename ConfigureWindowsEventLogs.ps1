@@ -104,6 +104,8 @@ function Expand-EventLogSize
 	[CmdletBinding()]
 	param ()
 	
+	Log -logFile $logFile -msg "------- Increase Event Log MaxSize Values -------" -level "Info"
+	
 	# Set Security, Sysmon, and PowerShell-related logs' maximum file size to 1 GB 
 	$1gbLogNames = "Security", "Microsoft-Windows-PowerShell/Operational", "Windows PowerShell", "PowerShellCore/Operational", "Microsoft-Windows-Sysmon/Operational"
 	
@@ -232,28 +234,33 @@ function Expand-PowerShellLogging
 	[CmdletBinding()]
 	param ()
 	
+	Log -logFile $logFile -msg "------- Enable PowerShell Logging -------" -level "Info"
+	
 	$powerShellModuleLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
 	$powerShellModuleLoggingValueName = 'EnableModuleLogging'
+	
+	Log -logFile $logFile -msg "Checking if $powerShellModuleLoggingPath has the $powerShellModuleLoggingValueName value"
 	
 	# Check if the path exists before trying to modify it
 	if (Test-Path $powerShellModuleLoggingPath)
 	{
-		# Enable PowerShell Module logging
-		Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "$powerShellModuleLoggingValueName" -Value 1 -ErrorAction Stop
-		
 		# Check if ModuleLogging is enabled
 		if ((Get-ItemProperty -Path "$powerShellModuleLoggingPath").$powerShellModuleLoggingValueName -eq 1)
 		{
-			Log -logFile $logFile -msg "PowerShell Module logging enabled"
+			Log -logFile $logFile -msg "PowerShell Module logging ($powerShellModuleLoggingValueName) is already enabled"
 		}
 		else
 		{
-			Log -logFile $logFile -msg "Failed to enable PowerShell Module logging"
+			# Enable PowerShell Module logging
+			Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "$powerShellModuleLoggingValueName" -Value 1 -ErrorAction Stop
 		}
 	}
 	else
 	{
-		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath does not exist"
+		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath does not currently exist"
+		# Enable PowerShell Module logging
+		Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "$powerShellModuleLoggingValueName" -Value 1 -ErrorAction Stop
+		Log -logFile $logFile -msg "PowerShell Module logging enabled"
 	}
 	
 	$powerShellModuleLoggingModuleNamesPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames'
@@ -261,8 +268,6 @@ function Expand-PowerShellLogging
 	# Check if the path exists before trying to modify it
 	if (Test-Path $powerShellModuleLoggingModuleNamesPath)
 	{
-		Set-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath" -Name "*" -Value "*"
-		
 		# Check if all modules are now logged
 		if ((Get-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath").'*' -eq "*")
 		{
@@ -272,11 +277,14 @@ function Expand-PowerShellLogging
 		{
 			Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
 		}
-		
 	}
 	else
 	{
-		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingModuleNamesPath does not exist"
+		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingModuleNamesPath does not currently exist"
+		Set-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath" -Name "*" -Value "*"
+		Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
+		
+		#TODO add validation
 	}
 	
 	$powerShellScriptBlockLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
@@ -308,6 +316,8 @@ function Enable-EventLogs
 	[CmdletBinding()]
 	param ()
 	
+	Log -logFile $logFile -msg "------- Enable Event Logs -------" -level "Info"
+	
 	# Define an array with the log names
 	$logs = @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational")
 	
@@ -335,6 +345,8 @@ function Enable-CommandLineAuditing
 	[CmdletBinding()]
 	param ()
 	
+	Log -logFile $logFile -msg "------- Enable Command Line Auditing -------" -level "Info"
+	
 	$commandLineAuditingPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit'
 	$commandLineAuditingValueName = 'ProcessCreationIncludeCmdLine_Enabled'
 	
@@ -356,6 +368,8 @@ function Enable-AuditPolicies
 {
 	[CmdletBinding()]
 	param ()
+	
+	Log -logFile $logFile -msg "------- Enable Audit Policies -------" -level "Info"
 	
 	# Define a hashtable for each category, with the GUIDs as the keys and the category names as the values
 	$AccountLogon = @{
@@ -531,8 +545,8 @@ finally
 # SIG # Begin signature block
 # MIIviwYJKoZIhvcNAQcCoIIvfDCCL3gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD+ybPkAP60AJLa
-# C2NKxHHQMvgQsd9xyIcU031EXIznLqCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB+SFclYAjwS/va
+# HPbfs9KrpNejdexaoKKvHWnbN+xUSqCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -752,35 +766,35 @@ finally
 # Bk0CAQEwaDBUMQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVk
 # MSswKQYDVQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1
 # nosluv9RC3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoEwwGQYJKoZIhvcNAQkDMQwG
-# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEICihWJO0NiPkrGc/7Cp89gLZWcOj
-# yJ2BhrcjaFOH8Tl8MA0GCSqGSIb3DQEBAQUABIICAH/JHw/KzdGq6Mm7MwiQ+EvL
-# a0l9qt4qmQ+u80sxLX8QWqy/G52/I+sZgj9378wBGVTmBf6yySkGkpss+OC2wGDg
-# Jm2E72q2rI1hrWsrBxDNwDwuqJQCNAEIc36Ta/ymCMyJOmcDSlnN6BrXUExsIHUP
-# K7YAi9CdxVtIk3neJmUdco6/BMQMXY/j5i84zFcXLoBdYQpq9TMcYQN1ZY1OlHvT
-# EsQ/KTPJZtxypI+rC0wkttCMcJvdmpk0/R/pQ1LT2tg3NfY9x0SzNoL/9o4Qga7X
-# ub/j2AfDfdhbftKFcahYOzRmU4r5Rf+ln/fjos7vsHdYt5UCWiwB9qpjrTzK176z
-# OzmlctO7G8gUtfF2HhkfMcylS4VQzFp/kUR6dVvQikSAYse2ClNDjoZatr/FeP4Q
-# L7CpkkLV7WiLpiW8kmO39Nzrscquq0xlepctQM+6WU1g4i5fniySeq5QisPbooHd
-# he3u39k1RwIJUaDvMBRNaLyeAocwpHhHxLDnZvpvhkqPzRHqR09KQZ4eTuwZEl3r
-# Lb6YASIE2dcWBUryGuw06F+oXwb2EXEE1vooXaHpRDllohpcERM1vTieEakSiCPd
-# VB2SdydCC2pv+zhypg39f7+2Ob/C+sRCDrbCNizbN6mxELCo7GS/GAb8EaFRLNqt
-# G1X77V6UngxSzq3OQ1A4oYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
+# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEILAf70YEMggc5Ah9jbbeLF/aTKf+
+# 16MjryuVQMZhq+pnMA0GCSqGSIb3DQEBAQUABIICAAStdCXHXu1eiAdNeuv5PN2P
+# l7gi7S57ggEHLiIx/iQuK1HSTzc3PTmMMXhIMWShLMuq6y/Dy/B3CoAuq16/f9HS
+# t07FtMp/LlJe34c2AFkMOdzRNr6giSXlKYueFvVumLm0vY7cVhN4o8lZPbd8RopJ
+# e9kS98SIuRClwfOyjvfjDzf4EPlR1dBKOF02xyhbRMYQQi4BaVI7NcM/qElT2TYj
+# GEBA9rQAlS0hLBu9w8963BwEDkU17hEi+iMQ4robnb5/VaMxgtQLFeTbA0FPGdJG
+# 6S29fQpETTHRm4MhCr3j02YuE3D5O9Rv8XxEDooCVofnogqasq+mBZzhVFPEKWsO
+# svWezHiSJc3xKbNIdiqRQZaD4qPsBdTQZXvx/IiFcI1xURCklueL1mCLlM1sJHs1
+# My69UqFH0pmiGsnVlEUTAhxjypcO17xnvvuFbtDDyf6WJRW4gAw5n7EAEg0D88jW
+# zHoLa8ZH95ykz/GMv+K3mKn7Bi3YuCvrRlXjZBLcshPVM1ewxJikdHkzO0AeRNPM
+# Q1gFMKdlD6pooY3aUUEN4ZXETqEO8QnztRDmID2YKc8WS6zjobKJ9Q610gRoYJN2
+# +q7soN5kQpRDSP+R+5ODTjjObaqf0UI2z2rrBS47T5iemQPa0zJIpqaQwQotkxxH
+# D7aQOR1A71d2tCsPto4coYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
 # WzELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNV
 # BAMTKEdsb2JhbFNpZ24gVGltZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAFI
 # kD3CirynoRlNDBxXuCkwCwYJYIZIAWUDBAIBoIIBPTAYBgkqhkiG9w0BCQMxCwYJ
-# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTcxMzM0NThaMCsGCSqGSIb3
+# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTcxNDM2MTJaMCsGCSqGSIb3
 # DQEJNDEeMBwwCwYJYIZIAWUDBAIBoQ0GCSqGSIb3DQEBCwUAMC8GCSqGSIb3DQEJ
-# BDEiBCAYWrj9LQQQs98up/QPAA+sSwpnFOGIi5qwGc/JH4T4uzCBpAYLKoZIhvcN
+# BDEiBCDR5ETxwwGoUnSBfggzVTJp51MkoBk6VQ0S8Zr7m0+oFDCBpAYLKoZIhvcN
 # AQkQAgwxgZQwgZEwgY4wgYsEFDEDDhdqpFkuqyyLregymfy1WF3PMHMwX6RdMFsx
 # CzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYDVQQD
 # EyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBDQSAtIFNIQTM4NCAtIEc0AhABSJA9
-# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgFqXPLWhjLWGl+WK4D2MTKf2
-# y35fQLpvd+Y39fRX1j2UnUWe7BQVP6SIxbf9HJZP3vxG6R5HnWBV6hIC84JaWrk7
-# /SSg75HW+BKguXofJk6tv93A7l4hxpDxNx8koHBSR23PPv9wdSwwz6SRFRMreciX
-# LN+8yjpzkq7glg/+gZxzXI+uMAg5ZDN6Gw8B6J3BdULFgIdg7QdASfWp52tvUG22
-# w03tE6CaDokAjNxqNtfAWoiN70jgWAY52gj2q/z9PmViqhAoOnL3iyJe89zRbKAI
-# jlK2CaKlavCBi964LVfOV7ba2kYeBL3R/3At+tcai2cyrNrJL7Jl8eMA1hj0MfKX
-# Ysf3BYXNM8njGARe5OvI5h8joQ0IXab35akel+G/ylz/Wmi8cauF5xFo1Q8w3pdi
-# OhTgg0NHMCvGktt+Cf5xH/iUYaR5zjhexgjU7xRvEasCTBIqIHpPuGlLhXwhlkPn
-# lE+eTvIcdVmgeEX+l1cZvPecMbyfmC86F5Fdrxv82g==
+# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgLN4e0zd0pR+Mj/LdLSCzRb6
+# S5TTZsklyjpHfwbkwpLCZZvR1P/369j2p5ConMdSuFC9wPD3YnE8SPzSgjVuiTGc
+# mdDCUqcI8LyW7pWWHz+1pdLudzzQRHwivmd5JZ0MVvqANPCT/5tTr7Y7BA6oJFPa
+# aY2FcBgv6Kb2D+xmNkk6RW3oVMOwjKOWKkzyqoGwWRZGOChHTtuQKp7UMpEp13l5
+# XPwSF4/FNh0UIhULTBMAr2lBTKhWxt7SvPVqGXYyVx4xkF3yeD3DpSGDkp6/ANxL
+# H4V4sSBznuEu/KSaoPbQMOobhNpmVHa9hloUCvkTnfKdjqkVjBjwHAuIDd89wfbL
+# T40B1g0mrwSgHeuGdO6lyzZ+Sdy7FWYsOkfi2l21s/gueyeb5zWOgyfNbPPDfSaJ
+# xQalyWJLJB7UgTUwCXARWvopDasu8H9H6DMBvu75a9a7Md7ifQdrZcPVEimSDdBr
+# hnjy7W0k3vUQ1+sDS21J5s8a19D+qBOB7EpvFg6Dtg==
 # SIG # End signature block
