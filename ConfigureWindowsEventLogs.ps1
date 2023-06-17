@@ -140,48 +140,71 @@ function Expand-PowerShellLogging
 	$powerShellModuleLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
 	$powerShellModuleLoggingValueName = 'EnableModuleLogging'
 	
-	# Enable PowerShell Module logging
-	$powerShellModuleLoggingValueName = 'EnableModuleLogging'
-	Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "" -Value 1
-	
-	# Check if ModuleLogging is enabled
-	if ((Get-ItemProperty -Path "$powerShellModuleLoggingPath").$powerShellModuleLoggingValueName -eq 1)
+	# Check if the path exists before trying to modify it
+	if (Test-Path $powerShellModuleLoggingPath)
 	{
-		Log -logFile $logFile -msg "PowerShell Module logging enabled"
+		# Enable PowerShell Module logging
+		Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "$powerShellModuleLoggingValueName" -Value 1 -ErrorAction Stop
+		
+		# Check if ModuleLogging is enabled
+		if ((Get-ItemProperty -Path "$powerShellModuleLoggingPath").$powerShellModuleLoggingValueName -eq 1)
+		{
+			Log -logFile $logFile -msg "PowerShell Module logging enabled"
+		}
+		else
+		{
+			Log -logFile $logFile -msg "Failed to enable PowerShell Module logging"
+		}
 	}
 	else
 	{
-		Log -logFile $logFile -msg "Failed to enable PowerShell Module logging"
+		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath does not exist"
 	}
 	
 	$powerShellModuleLoggingModuleNamesPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames'
 	
-	Set-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath" -Name "*" -Value "*"
-	
-	# Check if all modules are now logged
-	if ((Get-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath").'*' -eq "*")
+	# Check if the path exists before trying to modify it
+	if (Test-Path $powerShellModuleLoggingModuleNamesPath)
 	{
-		Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
+		Set-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath" -Name "*" -Value "*"
+		
+		# Check if all modules are now logged
+		if ((Get-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath").'*' -eq "*")
+		{
+			Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
+		}
+		else
+		{
+			Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
+		}
+		
 	}
 	else
 	{
-		Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
+		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingModuleNamesPath does not exist"
 	}
 	
 	$powerShellScriptBlockLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
 	$powerShellScriptBlockLoggingValueName = 'EnableScriptBlockLogging'
 	
-	# Enable PowerShell Script Block logging
-	Set-ItemProperty -Path "$powerShellScriptBlockLoggingPath" -Name "$powerShellScriptBlockLoggingValueName" -Value 1
-	
-	# Check if ScriptBlockLogging is enabled
-	if ((Get-ItemProperty -Path "$powerShellScriptBlockLoggingPath").$powerShellScriptBlockLoggingValueName -eq 1)
+	if (Test-Path $powerShellScriptBlockLoggingPath)
 	{
-		Log -logFile $logFile -msg "PowerShell Script Block logging enabled"
+		# Enable PowerShell Script Block logging
+		Set-ItemProperty -Path "$powerShellScriptBlockLoggingPath" -Name "$powerShellScriptBlockLoggingValueName" -Value 1 -ErrorAction Stop
+		
+		# Check if ScriptBlockLogging is enabled
+		if ((Get-ItemProperty -Path "$powerShellScriptBlockLoggingPath").$powerShellScriptBlockLoggingValueName -eq 1)
+		{
+			Log -logFile $logFile -msg "PowerShell Script Block logging enabled"
+		}
+		else
+		{
+			Log -logFile $logFile -msg "Failed to enable PowerShell Script Block logging"
+		}
 	}
 	else
 	{
-		Log -logFile $logFile -msg "Failed to enable PowerShell Script Block logging"
+		Log -logFile $logFile -msg "Registry path $powerShellScriptBlockLoggingPath does not exist"
 	}
 }
 
@@ -312,18 +335,77 @@ function Enable-AuditPolicies
 	}
 	
 	# Combine all categories into one array
-	$allCategories = $AccountLogon, $AccountManagement, $DetailedTracking, $DSAccess, $LogonLogoff, $ObjectAccess, $PolicyChange, $PrivilegeUse, $System
+	$allCategories = @{
+		'AccountLogon'	    = $AccountLogon
+		'AccountManagement' = $AccountManagement
+		'DetailedTracking'  = $DetailedTracking
+		'DSAccess'		    = $DSAccess
+		'LogonLogoff'	    = $LogonLogoff
+		'ObjectAccess'	    = $ObjectAccess
+		'PolicyChange'	    = $PolicyChange
+		'PrivilegeUse'	    = $PrivilegeUse
+		'System'		    = $System
+	}
 	
-	# Go through each category and enable auditing for all subcategories
-	foreach ($category in $allCategories)
+	foreach ($categoryName in $allCategories.Keys)
 	{
-		foreach ($guid in $category.Keys)
+		$category = $allCategories[$categoryName]
+		
+		Write-Host "Category: $categoryName"
+		
+		foreach ($subcategory in $category.Keys)
 		{
-			# Enable auditing
-			& auditpol /set /subcategory:{ $guid } /success:enable /failure:enable
+			$subcategoryName = $category[$subcategory]
 			
-			# Output message
-			Log -logFile $logFile -msg "Both successful and failure events will now be audited for the $($category[$guid]) subcategory"
+			Write-Host "Subcategory: $subcategory"
+			Write-Host "Subcategory Name: $subcategoryName"
+			
+			try
+			{
+				# Prepare auditpol set command
+				$auditpolCommand = "/c auditpol /set /subcategory:`"{${subcategory}}`" /success:enable /failure:enable"
+				# Output the command to be run
+				Write-Host "Running command: cmd $auditpolCommand"
+				# Run the command
+				cmd $auditpolCommand
+				
+				# Prepare auditpol get command for validation
+				$validationCommand = "/c auditpol /get /subcategory:`"{${subcategory}}`" /r"
+				# Output the command to be run
+				Write-Host "Running validation command: cmd $validationCommand"
+				# Run validation command
+				$validationResult = cmd $validationCommand
+				
+				# Ensure the command output is an array, even if it only contains one line
+				if ($validationResult -isnot [array]) { $validationResult = @($validationResult) }
+				
+				# Check if there are at least three lines
+				if ($validationResult.Count -gt 2)
+				{
+					# Extract the "Inclusion Setting" from the third line of the output
+					$thirdLine = $validationResult[2]
+					$inclusionSetting = ($thirdLine -split ',')[4].Trim()
+					
+					Write-Host "Inclusion Setting for $($subcategoryName): $inclusionSetting"
+					
+					if ($inclusionSetting -eq "Success and Failure")
+					{
+						Log -logFile $logFile -msg "Both successful and failure events are now being audited for the $($subcategoryName) subcategory"
+					}
+					else
+					{
+						Log -logFile $logFile -msg "Failed to enable auditing for the $($subcategoryName) subcategory"
+					}
+				}
+				else
+				{
+					Log -logFile $logFile -msg "Failed to retrieve auditing settings for the $($subcategoryName) subcategory"
+				}
+			}
+			catch
+			{
+				Log -logFile $logFile -msg "An error occurred while enabling auditing for the $($subcategoryName) subcategory: $_"
+			}
 		}
 	}
 }
@@ -354,8 +436,8 @@ finally
 # SIG # Begin signature block
 # MIIviwYJKoZIhvcNAQcCoIIvfDCCL3gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDBeWhgs/mq/qwX
-# VEodJ6nJQHYgjmwe4IGTuhlM8wooraCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDmDZcMoH5Tg0XA
+# t8IQAooOzyZ7URJfYoMnx/kOoJtAgKCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -575,35 +657,35 @@ finally
 # Bk0CAQEwaDBUMQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVk
 # MSswKQYDVQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1
 # nosluv9RC3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoEwwGQYJKoZIhvcNAQkDMQwG
-# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIDcRM2bi/OjgGt/NDc9Fwi2xb4dw
-# ntS2SOspN2MLkW4hMA0GCSqGSIb3DQEBAQUABIICAAOFzOzfxBnKkL1VcByzRXy8
-# 6AdFf92GIZCtr0YGTH6wBmtW1q6yBkLPum+fIhh/46PV0p3BDD9OkB8kP/xzrkzZ
-# NsTPG7gk1nnh2qgJTjzWjqHkIdsuL6rvnUdFUmJ64LKQTTh+pXi4joUOEKltHwjk
-# 0jU3BJ88FF747LoLVUWJGRQS1JtRUQmLdqxRF0SEezVWCRzAmQHCw5kMn8dOXJMS
-# 7QTAbC7/0RpYCxTwlHeNzM/EPoraXdJrjz5nU3YvvPRrXvRvnN62HO7/VZTneKjr
-# 7AUuaMwSG2IL/21ihlnGoeN7kxxY+vVFgDowqDa5yPYhvqNSaStbPl4EA7vMvJUi
-# siW6KpoDaS5q3n35txVD/GxStP6BaLtlvxp//gmIVd7xdbbArwCOpyIaTGtMRmq3
-# TzTUeFt6eQeRAQyEBlx3hVesKkjBKdLP8d4axQl0T0+MnZCOd+LdA7rbIZItZCO5
-# QGXAWG1VcTNbgVWSR+97TO6gusZzxXpeOw6m6Ai+MVy5LQ3+xY3ioxh0QqMCXuI+
-# u6HZyeULD9zjhZ/vUb0D3UR+HQ2ub7F08mHGOgCyNcn0vazxKd91XJ5nwyc/ngsh
-# YjjSvyaoDAPjrVUSU9zBLOBkAlRM/njN+Va2LZaXjWf6Sp7AQxAdq+T1lssIeiQU
-# YFNqnhjYSJp8nliTDo/OoYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
+# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIGBOkMX/uH/Z8Z2UQqQJOFMsHJc/
+# qtj19AzXfzvovJC8MA0GCSqGSIb3DQEBAQUABIICAAl4ZTK7IfUrSk+BEzCy5Gp6
+# fzpTy6KufYNXXsQDLE/5x7p89lMa2Lm3qqBE+3xQqQ812WNPsVIQ2OJf2auacav+
+# sZOYMLNgX/le7Yc29D6I2qNchGiExChU0Z2CcdtY1VrDGfGP63idbLBiEtemuB0O
+# qtuLt7OvRPQNiMKXNwidFK4KKgvrb8gYluYECv+nfkiJl+MAFnXj1ex3Etpophkf
+# z7i3mxJqhnVOogZQTNIQxj0Q9nYBqdkT+rfBykvLslrLlMDt/w9KbhMAOzQyuOOf
+# bLk1Ao7090rKLYbQRxCWsC3yJCFIqxrnmDXIzd1UMIZT9lunalUN0ARaf+xSM172
+# x6rvKG1JDasuQWYKThI2yX++cLi9Lv9FMxnJ+XZetvpPwPZmrniKLDSuFwRC5LeW
+# ilNQFdi55viuvoSwUmdRuDCW+Isqe39anf9GnO7k7hKp2Jadk+WTd9Nund6IvBoc
+# St4xCp2vsOTun7NyK5FUS8rNlbwcBEsd6BuDlJSNyfFeEzOo7MUaxsS9Jm8XuDXq
+# w9y1Jj28574faRkV9KyBh90mBd7CMOVtyhmTYkOAJC2PU/HDrG8B7PA9HYJubhtN
+# KwKRzk65unDQVSKco94RlYnEmnFtVP0nG5MnUkJ0pOAlFhYNxrm4EBarsto4XhPx
+# lUNOsIP5Ogxg1OO1n+DqoYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
 # WzELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNV
 # BAMTKEdsb2JhbFNpZ24gVGltZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAFI
 # kD3CirynoRlNDBxXuCkwCwYJYIZIAWUDBAIBoIIBPTAYBgkqhkiG9w0BCQMxCwYJ
-# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTYxNDEwMTBaMCsGCSqGSIb3
+# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTcwNDE4MDlaMCsGCSqGSIb3
 # DQEJNDEeMBwwCwYJYIZIAWUDBAIBoQ0GCSqGSIb3DQEBCwUAMC8GCSqGSIb3DQEJ
-# BDEiBCB3axrgFB/dP4xTQ227BePzOSQFrZpHbAQIgak5Mus03DCBpAYLKoZIhvcN
+# BDEiBCDdd5zlad/C4e72dm8dm28NHeTRkgehhIDgAIsOoDv+ajCBpAYLKoZIhvcN
 # AQkQAgwxgZQwgZEwgY4wgYsEFDEDDhdqpFkuqyyLregymfy1WF3PMHMwX6RdMFsx
 # CzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYDVQQD
 # EyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBDQSAtIFNIQTM4NCAtIEc0AhABSJA9
-# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgBC68TdMOOrA4ziFbTm1ZRzC
-# Q5u7Se4xpoaBdjLvQ+S4b/32Ez6/XfmqA2007QoePs3CuEf/S2LwpJXfb1GXFWZS
-# 9TcCxrs0rqzE/Vv5jPQ/enlcO6hRqMJw+9Q1SZTeT3eKS7oEi6yDQqr1GWlTzqcP
-# gnDcdX29xUlJ9iDgGI3mw2TRlAMo4XwibVdURKwmNKDk64OQ5R/sJ52mE5YuGfpF
-# w5HeCXXEj0+kyFcsXUn6uI8ajOsQFV0BbbfSeNK66azp1SklsDJfJGZfSpT1/jZj
-# LCq8J28lfx0xDoET4Z20MPP5Y/b6C61c2aboBr+vOU2AZUnvSRq8ET1CnCmauZqz
-# srZrB1+7E/rouRSJqonWWp6IRHQVtdXn5L1ke0WWOUJBAFU7id3g5aguIgS70zav
-# L2LVhT1//6WFcKPT+FSCaajKoDhuo1Ya5Cbrx7qzWPa8WMecJfQJ+coy0m5XUyNJ
-# zFEFNJ0npedVHxikhn3jrcZq5iPNopqZhPxBG9u+gg==
+# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgHG2e9Y6GhJLbKn3xZfVEg8B
+# 553R3E+9wLNfTOtOeyN/5HkMoQ9CfF0NB74jNoMD1LfEAEKKsYh1fkVgJrXDuIaM
+# ZhobhcECwcSx08SV9/Hdx7xu0J5u1oIiTucpbHVsL9MbxZX/LjOddpRybnLl2fPU
+# +ptxEpHs49VacCvqyxv6/YPtMJ5lq3rO0FHb8Kk10mgJ1Ck3GqPfbrfqqbu4tiQn
+# Qa2VhOU/oLcPD+9csaIS8xP+QGLze+O4xKY5GOM95QQ2nxzEj6sQyQQkkunenXUd
+# u5T/t000XftkMKJPRs489hPdrVHi3DRa6aBosoUmtBvYsswMXcQnXAG4N82LHDV1
+# 8C1cmd5cLPMoA8mAfK0ZLpmtjfRE1GmPaNoT+KLL0yUn2OM2yVHVkIQmuogyU53j
+# T6rfLGH4Vx6cZsyioYyle/EUKVDdgVAh4BlroMD7cQZ+NKJhCrL0H1i84RUVCUsa
+# yvliqJ04SGb07ybkzgOPJ1eYol3qR8O7HtCdtsUyGQ==
 # SIG # End signature block
