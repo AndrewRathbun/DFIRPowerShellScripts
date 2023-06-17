@@ -104,31 +104,126 @@ function Expand-EventLogSize
 	[CmdletBinding()]
 	param ()
 	
-	# Set Security, Sysmon, and PowerShell-related logs' maximum file size to 1 GB
+	# Set Security, Sysmon, and PowerShell-related logs' maximum file size to 1 GB 
 	$1gbLogNames = "Security", "Microsoft-Windows-PowerShell/Operational", "Windows PowerShell", "PowerShellCore/Operational", "Microsoft-Windows-Sysmon/Operational"
+	
+	# Get a list of all log names
+	$allLogNames = (Get-WinEvent -ListLog *).LogName
+	
+	# List to store names of non-existent logs
+	$nonExistent1GBLogs = @()
+	
 	foreach ($1gbLogName in $1gbLogNames)
 	{
-		Invoke-Expression -Command "wevtutil sl `"$1gbLogName`" $128MBCommand"
-		Log -logFile $logFile -msg "Increased $1gbLogName to 1GB ($1GB bytes)"
+		# Check if the log exists
+		if ($allLogNames -contains $1gbLogName)
+		{
+			Log -logFile $logFile -msg "Modifying the maximum size for the ${1gbLogName} event log"
+			
+			# Fetch the current maximum size
+			$currentMaxSizeBytes = ((wevtutil gl $1gbLogName) -like "*maxSize:*").Split(':')[1].Trim()
+			
+			# Convert to KB and MB
+			$currentMaxSizeKB = [math]::Round(($currentMaxSizeBytes / 1KB), 2)
+			$currentMaxSizeMB = [math]::Round(($currentMaxSizeBytes / 1MB), 2)
+			
+			# Inform the user about the current maximum size
+			Log -logFile $logFile -msg "Current maximum size of ${1gbLogName}: $currentMaxSizeBytes bytes | $currentMaxSizeKB KB | $currentMaxSizeMB MB"
+			
+			# Define the command string
+			$commandString = "wevtutil sl `"$1gbLogName`" $1GBCommand"
+			
+			# Inform the user about the command that will be executed
+			Log -logFile $logFile -msg "Running command: $commandString"
+			
+			# Execute the command
+			Invoke-Expression -Command $commandString
+			
+			# Fetch the updated maximum size
+			$updatedMaxSizeBytes = ((wevtutil gl $1gbLogName) -like "*maxSize:*").Split(':')[1].Trim()
+			
+			# Convert to KB and MB
+			$updatedMaxSizeKB = [math]::Round(($updatedMaxSizeBytes / 1KB), 2)
+			$updatedMaxSizeMB = [math]::Round(($updatedMaxSizeBytes / 1MB), 2)
+			
+			# Inform the user about the updated maximum size
+			Log -logFile $logFile -msg "Updated maximum size of ${1gbLogName}: $updatedMaxSizeBytes bytes | $updatedMaxSizeKB KB | $updatedMaxSizeMB MB"
+		}
+		else
+		{
+			# Add to non-existent logs list
+			$nonExistent1GBLogs += $1gbLogName
+		}
 	}
 	
-	# Set all other important logs to 128 MB. Increase or decrease to fit your environment.
-	$128mblogNames = "System", "Application", "Microsoft-Windows-Windows Defender/Operational",
-	"Microsoft-Windows-Bits-Client/Operational", "Microsoft-Windows-Windows Firewall With Advanced Security/Firewall",
-	"Microsoft-Windows-NTLM/Operational", "Microsoft-Windows-Security-Mitigations/KernelMode",
-	"Microsoft-Windows-Security-Mitigations/UserMode", "Microsoft-Windows-PrintService/Admin",
-	"Microsoft-Windows-Security-Mitigations/UserMode", "Microsoft-Windows-PrintService/Operational",
-	"Microsoft-Windows-SmbClient/Security", "Microsoft-Windows-AppLocker/MSI and Script",
-	"Microsoft-Windows-AppLocker/EXE and DLL", "Microsoft-Windows-AppLocker/Packaged app-Deployment",
-	"Microsoft-Windows-AppLocker/Packaged app-Execution", "Microsoft-Windows-CodeIntegrity/Operational",
-	"Microsoft-Windows-Diagnosis-Scripted/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational",
-	"Microsoft-Windows-WMI-Activity/Operational", "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational",
-	"Microsoft-Windows-TaskScheduler/Operational"
+	# Output non-existent logs
+	if ($nonExistent1GBLogs.Count -gt 0)
+	{
+		$nonExistent1GBLogsString = $nonExistent1GBLogs -join ', '
+		Log -logFile $logFile -msg "The following logs were attempted but do not currently exist: $nonExistent1GBLogsString"
+	}
+	
+	# Define the 128 MB log names
+	$128mblogNames = "System", "Application", "Microsoft-Windows-Windows Defender/Operational", "Microsoft-Windows-Bits-Client/Operational",
+	"Microsoft-Windows-Windows Firewall With Advanced Security/Firewall", "Microsoft-Windows-NTLM/Operational",
+	"Microsoft-Windows-Security-Mitigations/KernelMode", "Microsoft-Windows-Security-Mitigations/UserMode",
+	"Microsoft-Windows-PrintService/Admin", "Microsoft-Windows-Security-Mitigations/UserMode",
+	"Microsoft-Windows-PrintService/Operational", "Microsoft-Windows-SmbClient/Security",
+	"Microsoft-Windows-AppLocker/MSI and Script", "Microsoft-Windows-AppLocker/EXE and DLL",
+	"Microsoft-Windows-AppLocker/Packaged app-Deployment", "Microsoft-Windows-AppLocker/Packaged app-Execution",
+	"Microsoft-Windows-CodeIntegrity/Operational", "Microsoft-Windows-Diagnosis-Scripted/Operational",
+	"Microsoft-Windows-DriverFrameworks-UserMode/Operational", "Microsoft-Windows-WMI-Activity/Operational",
+	"Microsoft-Windows-TerminalServices-LocalSessionManager/Operational", "Microsoft-Windows-TaskScheduler/Operational"
+	
+	# Define the list for non-existent logs
+	$nonExistent128MBLogs = @()
 	
 	foreach ($128mblogName in $128mblogNames)
 	{
-		Invoke-Expression -Command "wevtutil sl `"$128mblogName`" $128MBCommand"
-		Log -logFile $logFile -msg "Increased $128mblogName to 128MB ($128MB bytes)"
+		# Check if the log exists
+		if ($allLogNames -contains $128mblogName)
+		{
+			# Fetch the current maximum size
+			$currentMaxSizeBytes = ((wevtutil gl $128mblogName) -like "*maxSize:*").Split(':')[1].Trim()
+			
+			# Convert to KB and MB
+			$currentMaxSizeKB = [math]::Round(($currentMaxSizeBytes / 1KB), 2)
+			$currentMaxSizeMB = [math]::Round(($currentMaxSizeBytes / 1MB), 2)
+			
+			# Inform the user about the current maximum size
+			Log -logFile $logFile -msg "Current maximum size of ${128mblogName}: $currentMaxSizeBytes bytes | $currentMaxSizeKB KB | $currentMaxSizeMB MB"
+			
+			# Define the command string
+			$commandString = "wevtutil sl `"$128mblogName`" $128MBCommand"
+			
+			# Inform the user about the command that will be executed
+			Log -logFile $logFile -msg "Running command: $commandString"
+			
+			# Execute the command
+			Invoke-Expression -Command $commandString
+			
+			# Fetch the updated maximum size
+			$updatedMaxSizeBytes = ((wevtutil gl $128mblogName) -like "*maxSize:*").Split(':')[1].Trim()
+			
+			# Convert to KB and MB
+			$updatedMaxSizeKB = [math]::Round(($updatedMaxSizeBytes / 1KB), 2)
+			$updatedMaxSizeMB = [math]::Round(($updatedMaxSizeBytes / 1MB), 2)
+			
+			# Inform the user about the updated maximum size
+			Log -logFile $logFile -msg "Updated maximum size of ${128mblogName}: $updatedMaxSizeBytes bytes | $updatedMaxSizeKB KB | $updatedMaxSizeMB MB"
+		}
+		else
+		{
+			# Add the log name to the non-existent logs list
+			$nonExistent128MBLogs += $128mblogName
+		}
+	}
+	
+	# Inform the user if any logs did not exist
+	if ($nonExistent128MBLogs.Count -gt 0)
+	{
+		$nonExistent128MBLogsString = $nonExistent128MBLogs -join ', '
+		Log -logFile $logFile -msg "The following logs were attempted but do not currently exist: $nonExistent128MBLogsString"
 	}
 }
 
@@ -351,28 +446,28 @@ function Enable-AuditPolicies
 	{
 		$category = $allCategories[$categoryName]
 		
-		Write-Host "Category: $categoryName"
+		Log -logFile $logFile -msg "Category: $categoryName"
 		
 		foreach ($subcategory in $category.Keys)
 		{
 			$subcategoryName = $category[$subcategory]
 			
-			Write-Host "Subcategory: $subcategory"
-			Write-Host "Subcategory Name: $subcategoryName"
+			Log -logFile $logFile -msg "Subcategory: $subcategory"
+			Log -logFile $logFile -msg "Subcategory Name: $subcategoryName"
 			
 			try
 			{
 				# Prepare auditpol set command
 				$auditpolCommand = "/c auditpol /set /subcategory:`"{${subcategory}}`" /success:enable /failure:enable"
 				# Output the command to be run
-				Write-Host "Running command: cmd $auditpolCommand"
+				Log -logFile $logFile -msg "Running command: cmd $auditpolCommand"
 				# Run the command
 				cmd $auditpolCommand
 				
 				# Prepare auditpol get command for validation
 				$validationCommand = "/c auditpol /get /subcategory:`"{${subcategory}}`" /r"
 				# Output the command to be run
-				Write-Host "Running validation command: cmd $validationCommand"
+				Log -logFile $logFile -msg "Running validation command: cmd $validationCommand"
 				# Run validation command
 				$validationResult = cmd $validationCommand
 				
@@ -386,7 +481,7 @@ function Enable-AuditPolicies
 					$thirdLine = $validationResult[2]
 					$inclusionSetting = ($thirdLine -split ',')[4].Trim()
 					
-					Write-Host "Inclusion Setting for $($subcategoryName): $inclusionSetting"
+					Log -logFile $logFile -msg "Inclusion Setting for $($subcategoryName): $inclusionSetting"
 					
 					if ($inclusionSetting -eq "Success and Failure")
 					{
@@ -436,8 +531,8 @@ finally
 # SIG # Begin signature block
 # MIIviwYJKoZIhvcNAQcCoIIvfDCCL3gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCDmDZcMoH5Tg0XA
-# t8IQAooOzyZ7URJfYoMnx/kOoJtAgKCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD+ybPkAP60AJLa
+# C2NKxHHQMvgQsd9xyIcU031EXIznLqCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -657,35 +752,35 @@ finally
 # Bk0CAQEwaDBUMQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVk
 # MSswKQYDVQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1
 # nosluv9RC3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoEwwGQYJKoZIhvcNAQkDMQwG
-# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEIGBOkMX/uH/Z8Z2UQqQJOFMsHJc/
-# qtj19AzXfzvovJC8MA0GCSqGSIb3DQEBAQUABIICAAl4ZTK7IfUrSk+BEzCy5Gp6
-# fzpTy6KufYNXXsQDLE/5x7p89lMa2Lm3qqBE+3xQqQ812WNPsVIQ2OJf2auacav+
-# sZOYMLNgX/le7Yc29D6I2qNchGiExChU0Z2CcdtY1VrDGfGP63idbLBiEtemuB0O
-# qtuLt7OvRPQNiMKXNwidFK4KKgvrb8gYluYECv+nfkiJl+MAFnXj1ex3Etpophkf
-# z7i3mxJqhnVOogZQTNIQxj0Q9nYBqdkT+rfBykvLslrLlMDt/w9KbhMAOzQyuOOf
-# bLk1Ao7090rKLYbQRxCWsC3yJCFIqxrnmDXIzd1UMIZT9lunalUN0ARaf+xSM172
-# x6rvKG1JDasuQWYKThI2yX++cLi9Lv9FMxnJ+XZetvpPwPZmrniKLDSuFwRC5LeW
-# ilNQFdi55viuvoSwUmdRuDCW+Isqe39anf9GnO7k7hKp2Jadk+WTd9Nund6IvBoc
-# St4xCp2vsOTun7NyK5FUS8rNlbwcBEsd6BuDlJSNyfFeEzOo7MUaxsS9Jm8XuDXq
-# w9y1Jj28574faRkV9KyBh90mBd7CMOVtyhmTYkOAJC2PU/HDrG8B7PA9HYJubhtN
-# KwKRzk65unDQVSKco94RlYnEmnFtVP0nG5MnUkJ0pOAlFhYNxrm4EBarsto4XhPx
-# lUNOsIP5Ogxg1OO1n+DqoYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
+# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEICihWJO0NiPkrGc/7Cp89gLZWcOj
+# yJ2BhrcjaFOH8Tl8MA0GCSqGSIb3DQEBAQUABIICAH/JHw/KzdGq6Mm7MwiQ+EvL
+# a0l9qt4qmQ+u80sxLX8QWqy/G52/I+sZgj9378wBGVTmBf6yySkGkpss+OC2wGDg
+# Jm2E72q2rI1hrWsrBxDNwDwuqJQCNAEIc36Ta/ymCMyJOmcDSlnN6BrXUExsIHUP
+# K7YAi9CdxVtIk3neJmUdco6/BMQMXY/j5i84zFcXLoBdYQpq9TMcYQN1ZY1OlHvT
+# EsQ/KTPJZtxypI+rC0wkttCMcJvdmpk0/R/pQ1LT2tg3NfY9x0SzNoL/9o4Qga7X
+# ub/j2AfDfdhbftKFcahYOzRmU4r5Rf+ln/fjos7vsHdYt5UCWiwB9qpjrTzK176z
+# OzmlctO7G8gUtfF2HhkfMcylS4VQzFp/kUR6dVvQikSAYse2ClNDjoZatr/FeP4Q
+# L7CpkkLV7WiLpiW8kmO39Nzrscquq0xlepctQM+6WU1g4i5fniySeq5QisPbooHd
+# he3u39k1RwIJUaDvMBRNaLyeAocwpHhHxLDnZvpvhkqPzRHqR09KQZ4eTuwZEl3r
+# Lb6YASIE2dcWBUryGuw06F+oXwb2EXEE1vooXaHpRDllohpcERM1vTieEakSiCPd
+# VB2SdydCC2pv+zhypg39f7+2Ob/C+sRCDrbCNizbN6mxELCo7GS/GAb8EaFRLNqt
+# G1X77V6UngxSzq3OQ1A4oYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
 # WzELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNV
 # BAMTKEdsb2JhbFNpZ24gVGltZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAFI
 # kD3CirynoRlNDBxXuCkwCwYJYIZIAWUDBAIBoIIBPTAYBgkqhkiG9w0BCQMxCwYJ
-# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTcwNDE4MDlaMCsGCSqGSIb3
+# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTcxMzM0NThaMCsGCSqGSIb3
 # DQEJNDEeMBwwCwYJYIZIAWUDBAIBoQ0GCSqGSIb3DQEBCwUAMC8GCSqGSIb3DQEJ
-# BDEiBCDdd5zlad/C4e72dm8dm28NHeTRkgehhIDgAIsOoDv+ajCBpAYLKoZIhvcN
+# BDEiBCAYWrj9LQQQs98up/QPAA+sSwpnFOGIi5qwGc/JH4T4uzCBpAYLKoZIhvcN
 # AQkQAgwxgZQwgZEwgY4wgYsEFDEDDhdqpFkuqyyLregymfy1WF3PMHMwX6RdMFsx
 # CzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYDVQQD
 # EyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBDQSAtIFNIQTM4NCAtIEc0AhABSJA9
-# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgHG2e9Y6GhJLbKn3xZfVEg8B
-# 553R3E+9wLNfTOtOeyN/5HkMoQ9CfF0NB74jNoMD1LfEAEKKsYh1fkVgJrXDuIaM
-# ZhobhcECwcSx08SV9/Hdx7xu0J5u1oIiTucpbHVsL9MbxZX/LjOddpRybnLl2fPU
-# +ptxEpHs49VacCvqyxv6/YPtMJ5lq3rO0FHb8Kk10mgJ1Ck3GqPfbrfqqbu4tiQn
-# Qa2VhOU/oLcPD+9csaIS8xP+QGLze+O4xKY5GOM95QQ2nxzEj6sQyQQkkunenXUd
-# u5T/t000XftkMKJPRs489hPdrVHi3DRa6aBosoUmtBvYsswMXcQnXAG4N82LHDV1
-# 8C1cmd5cLPMoA8mAfK0ZLpmtjfRE1GmPaNoT+KLL0yUn2OM2yVHVkIQmuogyU53j
-# T6rfLGH4Vx6cZsyioYyle/EUKVDdgVAh4BlroMD7cQZ+NKJhCrL0H1i84RUVCUsa
-# yvliqJ04SGb07ybkzgOPJ1eYol3qR8O7HtCdtsUyGQ==
+# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgFqXPLWhjLWGl+WK4D2MTKf2
+# y35fQLpvd+Y39fRX1j2UnUWe7BQVP6SIxbf9HJZP3vxG6R5HnWBV6hIC84JaWrk7
+# /SSg75HW+BKguXofJk6tv93A7l4hxpDxNx8koHBSR23PPv9wdSwwz6SRFRMreciX
+# LN+8yjpzkq7glg/+gZxzXI+uMAg5ZDN6Gw8B6J3BdULFgIdg7QdASfWp52tvUG22
+# w03tE6CaDokAjNxqNtfAWoiN70jgWAY52gj2q/z9PmViqhAoOnL3iyJe89zRbKAI
+# jlK2CaKlavCBi964LVfOV7ba2kYeBL3R/3At+tcai2cyrNrJL7Jl8eMA1hj0MfKX
+# Ysf3BYXNM8njGARe5OvI5h8joQ0IXab35akel+G/ylz/Wmi8cauF5xFo1Q8w3pdi
+# OhTgg0NHMCvGktt+Cf5xH/iUYaR5zjhexgjU7xRvEasCTBIqIHpPuGlLhXwhlkPn
+# lE+eTvIcdVmgeEX+l1cZvPecMbyfmC86F5Fdrxv82g==
 # SIG # End signature block
