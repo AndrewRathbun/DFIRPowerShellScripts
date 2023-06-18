@@ -236,78 +236,162 @@ function Expand-PowerShellLogging
 	
 	Log -logFile $logFile -msg "------- Enable PowerShell Logging -------" -level "Info"
 	
-	$powerShellModuleLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
-	$powerShellModuleLoggingValueName = 'EnableModuleLogging'
-	
-	Log -logFile $logFile -msg "Checking if $powerShellModuleLoggingPath has the $powerShellModuleLoggingValueName value"
-	
-	# Check if the path exists before trying to modify it
-	if (Test-Path $powerShellModuleLoggingPath)
+	try
 	{
-		# Check if ModuleLogging is enabled
-		if ((Get-ItemProperty -Path "$powerShellModuleLoggingPath").$powerShellModuleLoggingValueName -eq 1)
+		$powerShellModuleLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging'
+		$powerShellModuleLoggingValueName = 'EnableModuleLogging'
+		
+		# Check if the path exists before trying to modify it
+		if (Test-Path $powerShellModuleLoggingPath)
 		{
-			Log -logFile $logFile -msg "PowerShell Module logging ($powerShellModuleLoggingValueName) is already enabled"
+			# Check if ModuleLogging is enabled
+			if ((Get-ItemProperty -Path $powerShellModuleLoggingPath -Name $powerShellModuleLoggingValueName).$powerShellModuleLoggingValueName -eq 1)
+			{
+				Log -logFile $logFile -msg "PowerShell Module logging ($powerShellModuleLoggingValueName) is already enabled"
+			}
+			else
+			{
+				# Enable PowerShell Module logging
+				Set-ItemProperty -Path $powerShellModuleLoggingPath -Name $powerShellModuleLoggingValueName -Value 1 -ErrorAction Stop
+				Log -logFile $logFile -msg "PowerShell Module logging enabled"
+			}
 		}
 		else
 		{
-			# Enable PowerShell Module logging
-			Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "$powerShellModuleLoggingValueName" -Value 1 -ErrorAction Stop
+			Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath does not currently exist"
+			
+			# Check the state of MicrosoftWindowsPowerShellV2Root feature
+			$featureState = (Get-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root).State
+			
+			if ($featureState -eq "Disabled")
+			{
+				Log -logFile $logFile -msg "MicrosoftWindowsPowerShellV2Root feature is currently disabled"
+				# Enable MicrosoftWindowsPowerShellV2Root feature
+				Enable-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root -ErrorAction Stop
+				
+				# Verify the state of MicrosoftWindowsPowerShellV2Root feature after enabling
+				$newFeatureState = (Get-WindowsOptionalFeature -Online -FeatureName MicrosoftWindowsPowerShellV2Root).State
+				
+				if ($newFeatureState -eq "Enabled")
+				{
+					Log -logFile $logFile -msg "MicrosoftWindowsPowerShellV2Root feature has been enabled"
+					# Check if the path exists again and enable PowerShell Module logging
+					if (Test-Path $powerShellModuleLoggingPath)
+					{
+						Set-ItemProperty -Path $powerShellModuleLoggingPath -Name $powerShellModuleLoggingValueName -Value 1 -ErrorAction Stop
+						Log -logFile $logFile -msg "PowerShell Module logging enabled"
+					}
+					else
+					{
+						Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath still does not exist even after enabling the feature"
+					}
+				}
+				else
+				{
+					Log -logFile $logFile -msg "Failed to enable MicrosoftWindowsPowerShellV2Root feature"
+				}
+			}
+			else
+			{
+				Log -logFile $logFile -msg "MicrosoftWindowsPowerShellV2Root feature is already enabled"
+				# Check if the path exists again and enable PowerShell Module logging
+				if (Test-Path $powerShellModuleLoggingPath)
+				{
+					Set-ItemProperty -Path $powerShellModuleLoggingPath -Name $powerShellModuleLoggingValueName -Value 1 -ErrorAction Stop
+					Log -logFile $logFile -msg "PowerShell Module logging enabled"
+				}
+				else
+				{
+					Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath still does not exist even though the feature is enabled"
+				}
+			}
 		}
 	}
-	else
+	catch
 	{
-		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingPath does not currently exist"
-		# Enable PowerShell Module logging
-		Set-ItemProperty -Path "$powerShellModuleLoggingPath" -Name "$powerShellModuleLoggingValueName" -Value 1 -ErrorAction Stop
-		Log -logFile $logFile -msg "PowerShell Module logging enabled"
+		$errorMessage = $_.Exception.Message
+		Log -logFile $logFile -msg "Error occurred: $errorMessage" -level "Error"
 	}
 	
-	$powerShellModuleLoggingModuleNamesPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames'
-	
-	# Check if the path exists before trying to modify it
-	if (Test-Path $powerShellModuleLoggingModuleNamesPath)
+	try
 	{
-		# Check if all modules are now logged
-		if ((Get-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath").'*' -eq "*")
+		$powerShellModuleLoggingModuleNamesPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ModuleLogging\ModuleNames'
+		
+		# Check if the path exists before trying to modify it
+		if (Test-Path $powerShellModuleLoggingModuleNamesPath)
 		{
+			# Check if all modules are now logged
+			if ((Get-ItemProperty -Path $powerShellModuleLoggingModuleNamesPath -Name '*').'*' -eq "*")
+			{
+				Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
+			}
+			else
+			{
+				Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
+			}
+		}
+		else
+		{
+			Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingModuleNamesPath does not currently exist"
+			New-Item -Path $powerShellModuleLoggingModuleNamesPath -Force | Out-Null
+			Set-ItemProperty -Path $powerShellModuleLoggingModuleNamesPath -Name "*" -Value "*" -ErrorAction Stop
 			Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
+			
+			# Check if the path exists again and validate if all modules are logged
+			if (Test-Path $powerShellModuleLoggingModuleNamesPath)
+			{
+				$loggedModules = (Get-ItemProperty -Path $powerShellModuleLoggingModuleNamesPath -Name '*').'*'
+				if ($loggedModules -eq "*")
+				{
+					Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
+				}
+				else
+				{
+					Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
+				}
+			}
+			else
+			{
+				Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingModuleNamesPath still does not exist even after attempting to create it"
+			}
+		}
+	}
+	catch
+	{
+		$errorMessage = $_.Exception.Message
+		Log -logFile $logFile -msg "Error occurred: $errorMessage" -level "Error"
+	}
+	
+	try
+	{
+		$powerShellScriptBlockLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
+		$powerShellScriptBlockLoggingValueName = 'EnableScriptBlockLogging'
+		
+		# Check if the path exists before trying to modify it
+		if (Test-Path $powerShellScriptBlockLoggingPath)
+		{
+			# Enable PowerShell Script Block logging
+			Set-ItemProperty -Path $powerShellScriptBlockLoggingPath -Name $powerShellScriptBlockLoggingValueName -Value 1 -ErrorAction Stop
+			
+			# Check if ScriptBlockLogging is enabled
+			if ((Get-ItemProperty -Path $powerShellScriptBlockLoggingPath -Name $powerShellScriptBlockLoggingValueName).$powerShellScriptBlockLoggingValueName -eq 1)
+			{
+				Log -logFile $logFile -msg "PowerShell Script Block logging enabled"
+			}
+			else
+			{
+				Log -logFile $logFile -msg "Failed to enable PowerShell Script Block logging"
+			}
 		}
 		else
 		{
-			Log -logFile $logFile -msg "Failed to log all modules in PowerShell Module logging"
+			Log -logFile $logFile -msg "Registry path $powerShellScriptBlockLoggingPath does not exist"
 		}
 	}
-	else
+	catch
 	{
-		Log -logFile $logFile -msg "Registry path $powerShellModuleLoggingModuleNamesPath does not currently exist"
-		Set-ItemProperty -Path "$powerShellModuleLoggingModuleNamesPath" -Name "*" -Value "*"
-		Log -logFile $logFile -msg "All modules are now logged in PowerShell Module logging"
-		
-		#TODO add validation
-	}
-	
-	$powerShellScriptBlockLoggingPath = 'HKLM:\SOFTWARE\Wow6432Node\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging'
-	$powerShellScriptBlockLoggingValueName = 'EnableScriptBlockLogging'
-	
-	if (Test-Path $powerShellScriptBlockLoggingPath)
-	{
-		# Enable PowerShell Script Block logging
-		Set-ItemProperty -Path "$powerShellScriptBlockLoggingPath" -Name "$powerShellScriptBlockLoggingValueName" -Value 1 -ErrorAction Stop
-		
-		# Check if ScriptBlockLogging is enabled
-		if ((Get-ItemProperty -Path "$powerShellScriptBlockLoggingPath").$powerShellScriptBlockLoggingValueName -eq 1)
-		{
-			Log -logFile $logFile -msg "PowerShell Script Block logging enabled"
-		}
-		else
-		{
-			Log -logFile $logFile -msg "Failed to enable PowerShell Script Block logging"
-		}
-	}
-	else
-	{
-		Log -logFile $logFile -msg "Registry path $powerShellScriptBlockLoggingPath does not exist"
+		$errorMessage = $_.Exception.Message
+		Log -logFile $logFile -msg "Error occurred: $errorMessage" -level "Error"
 	}
 }
 
@@ -318,25 +402,43 @@ function Enable-EventLogs
 	
 	Log -logFile $logFile -msg "------- Enable Event Logs -------" -level "Info"
 	
-	# Define an array with the log names
-	$logs = @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational")
-	
-	# Loop over each log name
-	foreach ($log in $logs)
+	try
 	{
-		# Enable the log
-		& wevtutil sl $log /e:true
+		# Define an array with the log names
+		$logs = @("Microsoft-Windows-TaskScheduler/Operational", "Microsoft-Windows-DriverFrameworks-UserMode/Operational")
 		
-		# Check if the log was enabled
-		$isEnabled = & wevtutil gl $log | Select-String -Pattern "enabled:"
-		if ($isEnabled -match "true")
+		# Loop over each log name
+		foreach ($log in $logs)
 		{
-			Log -logFile $logFile -msg "Log $log enabled"
+			try
+			{
+				# Enable the log
+				& wevtutil sl $log /e:true
+				
+				# Check if the log was enabled
+				$isEnabled = & wevtutil gl $log | Select-String -Pattern "enabled:"
+				if ($isEnabled -match "true")
+				{
+					Log -logFile $logFile -msg "$log has been enabled"
+				}
+				else
+				{
+					Log -logFile $logFile -msg "Failed to enable $log"
+				}
+			}
+			catch
+			{
+				# Handle the error appropriately, for example, log the error message
+				$errorMessage = $_.Exception.Message
+				Log -logFile $logFile -msg "Error occurred while enabling $([string]$log): $errorMessage" -level "Error"
+			}
 		}
-		else
-		{
-			Log -logFile $logFile -msg "Failed to enable log $log"
-		}
+	}
+	catch
+	{
+		# Handle the error appropriately, for example, log the error message
+		$errorMessage = $_.Exception.Message
+		Log -logFile $logFile -msg "Error occurred: $errorMessage" -level "Error"
 	}
 }
 
@@ -545,8 +647,8 @@ finally
 # SIG # Begin signature block
 # MIIviwYJKoZIhvcNAQcCoIIvfDCCL3gCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCB+SFclYAjwS/va
-# HPbfs9KrpNejdexaoKKvHWnbN+xUSqCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCC8iQszcaaiQENc
+# I8g6Ip4wWwriG6gICvzyfbU1HBn11aCCKJAwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -766,35 +868,35 @@ finally
 # Bk0CAQEwaDBUMQswCQYDVQQGEwJHQjEYMBYGA1UEChMPU2VjdGlnbyBMaW1pdGVk
 # MSswKQYDVQQDEyJTZWN0aWdvIFB1YmxpYyBDb2RlIFNpZ25pbmcgQ0EgUjM2AhA1
 # nosluv9RC3xO0e22wmkkMA0GCWCGSAFlAwQCAQUAoEwwGQYJKoZIhvcNAQkDMQwG
-# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEILAf70YEMggc5Ah9jbbeLF/aTKf+
-# 16MjryuVQMZhq+pnMA0GCSqGSIb3DQEBAQUABIICAAStdCXHXu1eiAdNeuv5PN2P
-# l7gi7S57ggEHLiIx/iQuK1HSTzc3PTmMMXhIMWShLMuq6y/Dy/B3CoAuq16/f9HS
-# t07FtMp/LlJe34c2AFkMOdzRNr6giSXlKYueFvVumLm0vY7cVhN4o8lZPbd8RopJ
-# e9kS98SIuRClwfOyjvfjDzf4EPlR1dBKOF02xyhbRMYQQi4BaVI7NcM/qElT2TYj
-# GEBA9rQAlS0hLBu9w8963BwEDkU17hEi+iMQ4robnb5/VaMxgtQLFeTbA0FPGdJG
-# 6S29fQpETTHRm4MhCr3j02YuE3D5O9Rv8XxEDooCVofnogqasq+mBZzhVFPEKWsO
-# svWezHiSJc3xKbNIdiqRQZaD4qPsBdTQZXvx/IiFcI1xURCklueL1mCLlM1sJHs1
-# My69UqFH0pmiGsnVlEUTAhxjypcO17xnvvuFbtDDyf6WJRW4gAw5n7EAEg0D88jW
-# zHoLa8ZH95ykz/GMv+K3mKn7Bi3YuCvrRlXjZBLcshPVM1ewxJikdHkzO0AeRNPM
-# Q1gFMKdlD6pooY3aUUEN4ZXETqEO8QnztRDmID2YKc8WS6zjobKJ9Q610gRoYJN2
-# +q7soN5kQpRDSP+R+5ODTjjObaqf0UI2z2rrBS47T5iemQPa0zJIpqaQwQotkxxH
-# D7aQOR1A71d2tCsPto4coYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
+# CisGAQQBgjcCAQQwLwYJKoZIhvcNAQkEMSIEICdq0imH5LFZmStnUUEBo5Z85c+B
+# S4XP4nqmIe+xpklXMA0GCSqGSIb3DQEBAQUABIICAJz0LaIg67h4y30r4pv9cxYp
+# zwDL8pDYxboezgzjWVyaUwHSVNz4PHx8jyJxI3cZ9wYOJCEr1v3P5xmNqoodBLlZ
+# TKGFv0z1Eb0nJvnGZ6+FVX15r7Enxu3kR4TotWZrnw1N6lsGz3Rl8tvvpl/+Iu9I
+# 9S79nKHt2LrYuP5WQEaAGgKefKr0w/qHpztRq6XS0Fq3YrIhxRcx2pWqhFY4e4+w
+# 8jxu9Mr/9Vf1W1RGusgxhZDyCw3OWzNqsdvaoYwnVrUm1kfhWIPu80tb5EtV727Y
+# GwUzo0lUdUEdpi57BifdH1VVaqD+b1G0wiar8ZgessIZgBizHyMs1BUeHmtYT8+f
+# +oxIfWNw/UJmHE7zlO/lqJwiMuwp6qmOjBimgl0aM37AJFv95XPCAcMnX71PTg0F
+# RfU5heLvh6z1Br5/ErTbxklCXYkjU1LvNQB2vdFDqxBKilxpJFbLZBd3MqQ6122B
+# VEZlATqkrexRv/tcZZ6SsjhmR1l8uxzGr+pbBQmuCZItHK+QeEQlQ+jxZIacVpCy
+# Ww2wfgtCCE8yBT6BCdoUT/TNJOsBy7r7RXCSyzS8A1WlEA67oMSmsXv6sg3r41fE
+# oCJ8o1me8OSmXXkLYi48jSnKvfd0XOhMmZ3xLc4ZWOsO6KXRHhK4TppnJcHLhJFi
+# PQp+QutBzWeizmEPjumLoYIDbDCCA2gGCSqGSIb3DQEJBjGCA1kwggNVAgEBMG8w
 # WzELMAkGA1UEBhMCQkUxGTAXBgNVBAoTEEdsb2JhbFNpZ24gbnYtc2ExMTAvBgNV
 # BAMTKEdsb2JhbFNpZ24gVGltZXN0YW1waW5nIENBIC0gU0hBMzg0IC0gRzQCEAFI
 # kD3CirynoRlNDBxXuCkwCwYJYIZIAWUDBAIBoIIBPTAYBgkqhkiG9w0BCQMxCwYJ
-# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTcxNDM2MTJaMCsGCSqGSIb3
+# KoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0yMzA2MTgwMjU2MjlaMCsGCSqGSIb3
 # DQEJNDEeMBwwCwYJYIZIAWUDBAIBoQ0GCSqGSIb3DQEBCwUAMC8GCSqGSIb3DQEJ
-# BDEiBCDR5ETxwwGoUnSBfggzVTJp51MkoBk6VQ0S8Zr7m0+oFDCBpAYLKoZIhvcN
+# BDEiBCCOO7gR4XUWIYsJBPuk5SYAcTKg3m+HN3SSwcI47Jj9MzCBpAYLKoZIhvcN
 # AQkQAgwxgZQwgZEwgY4wgYsEFDEDDhdqpFkuqyyLregymfy1WF3PMHMwX6RdMFsx
 # CzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52LXNhMTEwLwYDVQQD
 # EyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBDQSAtIFNIQTM4NCAtIEc0AhABSJA9
-# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgLN4e0zd0pR+Mj/LdLSCzRb6
-# S5TTZsklyjpHfwbkwpLCZZvR1P/369j2p5ConMdSuFC9wPD3YnE8SPzSgjVuiTGc
-# mdDCUqcI8LyW7pWWHz+1pdLudzzQRHwivmd5JZ0MVvqANPCT/5tTr7Y7BA6oJFPa
-# aY2FcBgv6Kb2D+xmNkk6RW3oVMOwjKOWKkzyqoGwWRZGOChHTtuQKp7UMpEp13l5
-# XPwSF4/FNh0UIhULTBMAr2lBTKhWxt7SvPVqGXYyVx4xkF3yeD3DpSGDkp6/ANxL
-# H4V4sSBznuEu/KSaoPbQMOobhNpmVHa9hloUCvkTnfKdjqkVjBjwHAuIDd89wfbL
-# T40B1g0mrwSgHeuGdO6lyzZ+Sdy7FWYsOkfi2l21s/gueyeb5zWOgyfNbPPDfSaJ
-# xQalyWJLJB7UgTUwCXARWvopDasu8H9H6DMBvu75a9a7Md7ifQdrZcPVEimSDdBr
-# hnjy7W0k3vUQ1+sDS21J5s8a19D+qBOB7EpvFg6Dtg==
+# woq8p6EZTQwcV7gpMA0GCSqGSIb3DQEBCwUABIIBgEMURjIR79zlSiTzZhXkxSdy
+# 2cKGGwyiIA1bTW22Gd3xGHvX891jveSwZ0Ij+aSClJfeLGvLQQJ/oO9y4XunMua+
+# cwwRFqcEotU1sFPNhJR1murKn/c0iGUWB+ZlCRD52LZVG+6XKdwV2VTqbd25bIdl
+# VAR/qSOXOS55InEnuuff+PWLZB8mTvu/fYdgn9ZnHSyFXpBQnKZCBl0/xrmyn1ak
+# XPy4sf0hnXCBGrhO8SvfiUQWFlboQ6DL49QMqedhYSYh6I5dvNTUVVqF5txGxHFg
+# nuFq86ccnV+wclZQI2nQ41kKJqjKpr/9T8p3duzpvwfL9GWmdC2lBiJUnbctUDHE
+# jTBa3dlVmWvDG86XPPfoexBYRbjjmUnCqY+asw6uD0o7kaSCr57wU9hpNdgDyrT+
+# xbsec3NMNVFpTyVBUbnE8O56BlxaYs10VgP3mQnTivXPBzHiEOPVvL28t+qZCTDj
+# 6BDSfECMNSwAglkkb6dnO2LDUVjXgCsXRubZea2aFw==
 # SIG # End signature block
