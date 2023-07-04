@@ -1,0 +1,15 @@
+Description: VanillaRegistryHives - Compress Archives
+Category: VanillaRegistryHives
+Author: Andrew Rathbun
+Version: 1.0
+Id: cebffd14-901a-44fd-9960-e3a781ac1679
+ExportFormat: ""
+Processors:
+    -
+        Executable: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        CommandLine: Compress-Archive -LiteralPath 'C:\RegistryHives\mout' -DestinationPath 'C:\\Users\Administrator\Desktop\RegistryHivesJSON.zip'
+        ExportFormat: ""
+
+# Documentationth
+# https://github.com/AndrewRathbun/VanillaWindowsRegistryHives
+# This Module will compress Registry hives converted to JSON with _kape.cli and put them on the desktop for extraction from VM
