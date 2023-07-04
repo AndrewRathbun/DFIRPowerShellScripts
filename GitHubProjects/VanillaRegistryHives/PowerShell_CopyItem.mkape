@@ -1,0 +1,15 @@
+Description: VanillaRegistryHives - Copy Item
+Category: VanillaRegistryHives
+Author: Andrew Rathbun
+Version: 1.0
+Id: cebffd14-901a-44fd-9960-e36661ac1679
+ExportFormat: ""
+Processors:
+    -
+        Executable: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+        CommandLine: Copy-Item -Path 'C:\RegistryHives\tout\*' -Include "*.zip" -Destination 'C:\\Users\Administrator\Desktop\RegistryHives.zip' -Force
+        ExportFormat: ""
+
+# Documentation
+# https://github.com/AndrewRathbun/VanillaWindowsRegistryHives
+# This Module will copy Registry hives grabbed with _kape.cli and put them on the desktop for extraction from VM
