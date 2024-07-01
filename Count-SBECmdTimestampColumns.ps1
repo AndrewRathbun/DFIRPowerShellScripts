@@ -14,12 +14,15 @@
 	.OUTPUTS
 		Example output:
 		
-		Total count of values in FirstInteracted column: 399
-		Number of unique values in FirstInteracted column: 324
-		Total count of values in LastInteracted column: 399
-		Number of unique values in LastInteracted column: 316
-		Total unique values between both columns: 474
-		Total number of values in both columns: 798
+		This script combines either FirstInteracted or LastInteracted with the value of AbsolutePath for the purpose of calculating the total count within a respective CSV
+		Total count of values in AbsolutePath column: 1612
+		Number of unique values in AbsolutePath column: 1595
+		Total count of values in FirstInteracted column: 973
+		Number of unique values in FirstInteracted column: 960
+		Total count of values in LastInteracted column: 637
+		Number of unique values in LastInteracted column: 637
+		Total unique values between both AbsolutePath and FirstInteracted/LastInteracted columns: 1273
+		Total number of values between both AbsolutePath and FirstInteracted/LastInteracted columns: 1610
 	
 	.NOTES
 		===========================================================================
@@ -83,8 +86,8 @@ Write-Host "Total number of values between both AbsolutePath and FirstInteracted
 # SIG # Begin signature block
 # MIIvngYJKoZIhvcNAQcCoIIvjzCCL4sCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAJs5kyyXql8mtU
-# wzju6UlG6qtcpdzaleqyrAN8xChLAqCCKKMwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCD3E7tU9nEKh8eL
+# C/8T+zJoSuFmLaSJuwys2LSSns/0DqCCKKMwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -304,36 +307,36 @@ Write-Host "Total number of values between both AbsolutePath and FirstInteracted
 # 9lAXRaV/0x/qHtrv6DGCBlEwggZNAgEBMGgwVDELMAkGA1UEBhMCR0IxGDAWBgNV
 # BAoTD1NlY3RpZ28gTGltaXRlZDErMCkGA1UEAxMiU2VjdGlnbyBQdWJsaWMgQ29k
 # ZSBTaWduaW5nIENBIFIzNgIQNZ6LJbr/UQt8TtHttsJpJDANBglghkgBZQMEAgEF
-# AKBMMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCCQ
-# 37SByzulOc9c00A2w3SNjytIj/oEQrTGe9TI7gzxOjANBgkqhkiG9w0BAQEFAASC
-# AgAU/Kau57hMDdyO/W+87AtfkxCGet9VMLN2oVJn/9i4YCUbDimG1x6q1a8uvDWZ
-# gBAfssW0aX9e72tgBX+bTPjobCjrGCbT/usCBA+Ggu04fcUxjpbeIez7SuUt1IjS
-# r6tZUtunMk6Rikw5YSltWWjJN7IM9aRpRR0RWYFzU1tyQ15ZqXqDlcEj/TOdFX64
-# CeW7lPLJOEGkgMylLkmjNMJVf1pMkoGIIqZp2WRmzXXE4fe0mFBpaRCV75M+KMHx
-# ZvjQf5cLLj1WfXhOQFc94CRZPKCcnE4v3+3w8DesnL8E6ofikNi++SJu/WfBcUDr
-# 21KF/NPUvf3cL1yrg2o5LopnsNtZmCJnL8yGRCdJum/LCaHnz1yjlCMGRAR4UZQ5
-# su8QJYFwurAuXeU1bY1zdszmRf/h/Osayp2jeKnZzDUoOgcMtwj3wNKIUyNpgmwC
-# xrtbeBDeOtdTrEi7vJlJ8AtC3gu82HnpJiAP7EpPJW9hT12g1H7enwHW2kfV/1db
-# 0fTD0hB63DumhgKbZbSNaKdTrlifTihCWHW+XUnN0Pb/wTyeVQdAtlulJ2ZjJCEl
-# qlqUzAIZSD3zW1Inb7IGp2OY+u+2PkLsogE5ZuHBVIfMi+RhwhUwf4icLJjV7hlF
-# nIdsQ/Nv+m7qxkLvXVx1QhUyL+afkNWKvDBeEBgGG1ksUqGCA2wwggNoBgkqhkiG
+# AKBMMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCBA
+# N95SsfWxrvMz6m5HblTtddVuZI1VMucn7t+HHxkOLTANBgkqhkiG9w0BAQEFAASC
+# AgBXe34gO9545baHj6L+5/WqyHiRxvSwNXNR+z3xe7wUaXzXUCG4kR2f5at8dRI2
+# sK+uwtAXyhkFXDKBphWiZ8+j2OfQ0mX78ZkiSfstW/XhPDS8u9Iq4Vfw5r/TMAqg
+# thLwotwJU0bWzWPzQ4r+uRMVIOgrnaJhX3EzO/vzIR+uhZwMZ9zZNBy1O0bszgDr
+# wGIo9XybGuEw/0Xwv/6WUwtR4js2YXuh3sCfu+XhDf74xqIfhlAgZCDMntjtGyVQ
+# bfbbhgJipfEtil4GQyj8MFoxh9/a6fXKjZ2YNhVzjns1FsU3PAHmqmLhqeyDwS7C
+# WtdGreV3+idXxTN0Xz963Sv/i+QdxA4QS2Y2SrxqNFXNoy1Sca3OuaHDzFEYooLm
+# YM1NGROcXf129PD//huNFsXm90ys8g5GlkFIGyF5X3YLBp8gvTSFjvH7bFdJYDPc
+# +O8BwTcBYBX9wGiTD0tlCKuRvWSSIyu9DO0p+yPvW4HyOJz8lIAGAH0Gy6W8+9hT
+# lO2QNF3iazGMK452JQt9lDmoBxW9lVT9mnPmeeB6tl2ZIi0Y/49IZEc954VO0V3n
+# WIwc2u9K6jKSd2VFAfUDwSCb9O83wOByMI36SSDxgfL57OZ3K9XrwOQCOMUUA4zl
+# z7jHufShCC08AtfIBRKQM3ETqH2/TQs2epmaHMNYKsxvk6GCA2wwggNoBgkqhkiG
 # 9w0BCQYxggNZMIIDVQIBATBvMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i
 # YWxTaWduIG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBD
 # QSAtIFNIQTM4NCAtIEc0AhABB2SbCLCn/n3WVKjy9Cn2MAsGCWCGSAFlAwQCAaCC
 # AT0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjQw
-# NzAxMTkwODA2WjArBgkqhkiG9w0BCTQxHjAcMAsGCWCGSAFlAwQCAaENBgkqhkiG
-# 9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgC5ySDNFuXoDBKxKV1lpCnW4R8shcBT0y
-# KFR3nztCeGAwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGOMIGLBBRE05OczRuIf4Z6
+# NzAxMTkxNzQ3WjArBgkqhkiG9w0BCTQxHjAcMAsGCWCGSAFlAwQCAaENBgkqhkiG
+# 9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgugWivAmbZ3Bx20d0rcS/kHN1H9a8C5H6
+# LzErbJFyfYgwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGOMIGLBBRE05OczRuIf4Z6
 # zNqB7K8PZfzSWTBzMF+kXTBbMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFs
 # U2lnbiBudi1zYTExMC8GA1UEAxMoR2xvYmFsU2lnbiBUaW1lc3RhbXBpbmcgQ0Eg
 # LSBTSEEzODQgLSBHNAIQAQdkmwiwp/591lSo8vQp9jANBgkqhkiG9w0BAQsFAASC
-# AYAAp9eDPS/11RP/gzQ/M/TmPsluLzvlXLgHtZM8AuvBJb/XAfWYkE6NTfed0DZf
-# loA2LzADA14kpmXSpt7VaXFWvugNrwqRVkwtZHIl5m+S0NytjpF5fGMbr5MuMPaV
-# DyVdt8RlNdrOiyxo9s4rAMXn+ZrsED84LXGiaS9SdlTuAumZYLdsk6hsNSoph89Z
-# FcoZ7wNt0ZYx6bPXXjkfyIhfnWlG8/jkxCvyLNlImcdg3hbueTFLV36VpFybh+VY
-# ly/3Pz/RA6k1SQWXS/wA4qWUvuLevh72u66w0GR0v7dqAnOCW/ZXUu61lLzQev7p
-# pt/FtGUVSsyEXkWFOoV5/wiQxbBrJLoGJW6b+bMF/Q960aeQireWOPAH1FNumrCP
-# fdnMyAK2mrXHMS+E8vBiSR+2+5t51qFmv/o9QGWieYj6N1JpMT/+pA/X2VqtOAa8
-# 72PVoLgXcTpfpF6MFwJKLSRkziJE6HPFVMjqmFflR7uaJlntR3K72gA0EUVw2uZu
-# mVo=
+# AYAu5QN96C27qx7zN9nugt3ZM9xhSIY9Lirh5UPBPSZ1BT15R/0xNsWWh5GIAJQN
+# ieo9FNUYyeX+w6j0DbsKdjfodQHByNZrIzgmTCy3SZTQ82y/P1sqfH28LcfLQpTP
+# hKXoExxI5MqRlTGMPoRuk9UbC7ZNyqiMX65KUnxodHZ+dnj1jni1ajPmM7Jjg+Yk
+# McxxL45sz1fDeg/3hxpeCsF+P8jpedcfq9l5OMqoQUbJjqtnStoaiGTE+/85X6qZ
+# mLfyMwupWF06+VJN7SWu8Azve/8f4ojh2ZOb7cGMoOGHaXUFKJLbmxYAWt2KEqA5
+# QDgt0fmOkdYausjzYXjEhadWX26tpFGiHEcJgk0nNPOKsA7EoqgJLq7P/48xgBeN
+# nau3uzzxqk2ciVmj4ZBDkzKZEXJGfQeheecHJbC/KOrR7TqY5jQWzpy+V4nuE0cZ
+# EiL/4yOII9C5rjJZrn3oG+hC60p3msT8b+Qui57IGl8xV/fnfWkX0byhRcOMUdsn
+# L5c=
 # SIG # End signature block
