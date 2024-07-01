@@ -32,7 +32,8 @@ param
 	[Parameter(Mandatory = $true,
 			   Position = 1,
 			   HelpMessage = 'Provide a file path for SBECmd CSV output')]
-	[ValidatePattern('^.*_(UsrClass|NtUser)\.csv$')] # looks for *_UsrClass.csv or *_NtUser.csv. Can currently only ingest one file at a time 
+	[ValidatePattern('^.*_(UsrClass|NtUser)\.csv$')]
+	# looks for *_UsrClass.csv or *_NtUser.csv. Can currently only ingest one file at a time
 	[string]$Path
 )
 
@@ -43,15 +44,19 @@ if (-not (Test-Path $Path))
 }
 
 ## Read CSV file
-$csvData = Import-Csv -Path $Path
+$csvData = Import-Csv -Path $Path # ingests the CSV provided by the user via $path
 
 ## Get counts for FirstInteracted column combined with AbsolutePath
-$FirstInteractedTotal = ($csvData | Where-Object { $_.FirstInteracted }).Count
-$FirstInteractedUnique = ($csvData | Where-Object { $_.FirstInteracted } | Select-Object -Property @{ Name = 'Combo'; Expression = { "$($_.AbsolutePath)|$($_.FirstInteracted)" } } | Select-Object -Unique Combo).Count
+$AbsolutePathTotal = ($csvData | Where-Object { $_.AbsolutePath }).Count # counts how many AbsolutePath cells have a value
+$AbsolutePathUnique = ($csvData | Where-Object { $_.AbsolutePath } | Select-Object -Property AbsolutePath -Unique).Count # counts how many unique AbsolutePath cells exist
+
+## Get counts for FirstInteracted column combined with AbsolutePath
+$FirstInteractedTotal = ($csvData | Where-Object { $_.FirstInteracted }).Count # counts how many FirstInteracted cells have a value
+$FirstInteractedUnique = ($csvData | Where-Object { $_.FirstInteracted } | Select-Object -Property @{ Name = 'Combo'; Expression = { "$($_.AbsolutePath)|$($_.FirstInteracted)" } } | Select-Object -Unique Combo).Count # counts how many FirstInteracted cells have a value combined with the AbsolutePath value
 
 ## Get counts for LastInteracted column combined with AbsolutePath
-$LastInteractedTotal = ($csvData | Where-Object { $_.LastInteracted }).Count
-$LastInteractedUnique = ($csvData | Where-Object { $_.LastInteracted } | Select-Object -Property @{ Name = 'Combo'; Expression = { "$($_.AbsolutePath)|$($_.LastInteracted)" } } | Select-Object -Unique Combo).Count
+$LastInteractedTotal = ($csvData | Where-Object { $_.LastInteracted }).Count # counts how many LastInteracted cells have a value
+$LastInteractedUnique = ($csvData | Where-Object { $_.LastInteracted } | Select-Object -Property @{ Name = 'Combo'; Expression = { "$($_.AbsolutePath)|$($_.LastInteracted)" } } | Select-Object -Unique Combo).Count # counts how many LastInteracted cells have a value combined with the AbsolutePath value
 
 ## Get total unique values between both columns combined with AbsolutePath
 $uniqueValues = $csvData | ForEach-Object {
@@ -66,18 +71,20 @@ $totalValues = $FirstInteractedTotal + $LastInteractedTotal
 
 ## Output results
 Write-Host "This script combines either FirstInteracted or LastInteracted with the value of AbsolutePath for the purpose of calculating the total count within a respective CSV"
+Write-Host "Total count of values in AbsolutePath column: $AbsolutePathTotal"
+Write-Host "Number of unique values in AbsolutePath column: $AbsolutePathUnique"
 Write-Host "Total count of values in FirstInteracted column: $FirstInteractedTotal"
 Write-Host "Number of unique values in FirstInteracted column: $FirstInteractedUnique"
 Write-Host "Total count of values in LastInteracted column: $LastInteractedTotal"
 Write-Host "Number of unique values in LastInteracted column: $LastInteractedUnique"
-Write-Host "Total unique values between both columns: $totalUniqueValues"
-Write-Host "Total number of values in both columns: $totalValues"
+Write-Host "Total unique values between both AbsolutePath and FirstInteracted/LastInteracted columns: $totalUniqueValues"
+Write-Host "Total number of values between both AbsolutePath and FirstInteracted/LastInteracted columns: $totalValues"
 
 # SIG # Begin signature block
 # MIIvngYJKoZIhvcNAQcCoIIvjzCCL4sCAQExDzANBglghkgBZQMEAgEFADB5Bgor
 # BgEEAYI3AgEEoGswaTA0BgorBgEEAYI3AgEeMCYCAwEAAAQQH8w7YFlLCE63JNLG
-# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCBX6Ojusu2H4BjA
-# 6LvpbVoLQPr0BGge9Br6RfDuM4s9J6CCKKMwggQyMIIDGqADAgECAgEBMA0GCSqG
+# KX7zUQIBAAIBAAIBAAIBAAIBADAxMA0GCWCGSAFlAwQCAQUABCAJs5kyyXql8mtU
+# wzju6UlG6qtcpdzaleqyrAN8xChLAqCCKKMwggQyMIIDGqADAgECAgEBMA0GCSqG
 # SIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNo
 # ZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1p
 # dGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
@@ -297,36 +304,36 @@ Write-Host "Total number of values in both columns: $totalValues"
 # 9lAXRaV/0x/qHtrv6DGCBlEwggZNAgEBMGgwVDELMAkGA1UEBhMCR0IxGDAWBgNV
 # BAoTD1NlY3RpZ28gTGltaXRlZDErMCkGA1UEAxMiU2VjdGlnbyBQdWJsaWMgQ29k
 # ZSBTaWduaW5nIENBIFIzNgIQNZ6LJbr/UQt8TtHttsJpJDANBglghkgBZQMEAgEF
-# AKBMMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCBx
-# dTQfKbokdiiX3lcHlpRwlZqr4U31Oqe7AseR4d30cTANBgkqhkiG9w0BAQEFAASC
-# AgBT/AR4IszPJIwu8Hm2JQpruq6+mDzVEvv2K9e1veaPYjQIgWueNUH+ZqnQgOzc
-# cgtqFTmUAqblcaS7xdLowAzRjUiWhFWIg3nAyv4fydRP7LrebCYXl7ByIXxL2KJe
-# y7Pee6eTZGvIGZBAkNxRFq+ZkqhoubnfqpNFYtOaEKT9lF3bXGHOkGfoyNwD3bWt
-# tLMA8YI7MzOBCw2+h7cyNFYQvEefiaX2bpvE8hsbrB+iMBHyhNhGY4FDRqKFGUgM
-# uDoXlYiK1Jtqx2X1vZdXS4gZgeu1vFBCWSmeFPdBR4MnlXtce1WWtXp0EsHxKdgu
-# oXX4Wfgw5SyV29XbIbRhhpojeJ6v/IgTo2klp5W+ljepRtfaA72Uu12foSkOubyY
-# dBhE9cK3sI2NsoxB2Nxq4tSCIIqeSy/1sMXZ8719Dl+fjQ5TNNWXVHNJg5DzyC6U
-# BI0BYWWzbyaozdGuWDe21jMrQkfT2kPPTr0u+qiy25qlvtpnxuMK/Q6YPDjIIncT
-# JGmdVcU95b3cLC5jrRlFkN8F7W/wM3/XEjjizC6DWB8/wrVwJ5OgfccyaUWa9vCz
-# WGffw48gV3zI/4TLGQB9v8ZmpHdNM+0bFmtniN6fteE4GIXI5c6y3a7u3KY0FsTi
-# IjwOZOB2/HJmZuQCvQpa6XRD3c9NjBredNlQuBb42Qx5pKGCA2wwggNoBgkqhkiG
+# AKBMMBkGCSqGSIb3DQEJAzEMBgorBgEEAYI3AgEEMC8GCSqGSIb3DQEJBDEiBCCQ
+# 37SByzulOc9c00A2w3SNjytIj/oEQrTGe9TI7gzxOjANBgkqhkiG9w0BAQEFAASC
+# AgAU/Kau57hMDdyO/W+87AtfkxCGet9VMLN2oVJn/9i4YCUbDimG1x6q1a8uvDWZ
+# gBAfssW0aX9e72tgBX+bTPjobCjrGCbT/usCBA+Ggu04fcUxjpbeIez7SuUt1IjS
+# r6tZUtunMk6Rikw5YSltWWjJN7IM9aRpRR0RWYFzU1tyQ15ZqXqDlcEj/TOdFX64
+# CeW7lPLJOEGkgMylLkmjNMJVf1pMkoGIIqZp2WRmzXXE4fe0mFBpaRCV75M+KMHx
+# ZvjQf5cLLj1WfXhOQFc94CRZPKCcnE4v3+3w8DesnL8E6ofikNi++SJu/WfBcUDr
+# 21KF/NPUvf3cL1yrg2o5LopnsNtZmCJnL8yGRCdJum/LCaHnz1yjlCMGRAR4UZQ5
+# su8QJYFwurAuXeU1bY1zdszmRf/h/Osayp2jeKnZzDUoOgcMtwj3wNKIUyNpgmwC
+# xrtbeBDeOtdTrEi7vJlJ8AtC3gu82HnpJiAP7EpPJW9hT12g1H7enwHW2kfV/1db
+# 0fTD0hB63DumhgKbZbSNaKdTrlifTihCWHW+XUnN0Pb/wTyeVQdAtlulJ2ZjJCEl
+# qlqUzAIZSD3zW1Inb7IGp2OY+u+2PkLsogE5ZuHBVIfMi+RhwhUwf4icLJjV7hlF
+# nIdsQ/Nv+m7qxkLvXVx1QhUyL+afkNWKvDBeEBgGG1ksUqGCA2wwggNoBgkqhkiG
 # 9w0BCQYxggNZMIIDVQIBATBvMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9i
 # YWxTaWduIG52LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBD
 # QSAtIFNIQTM4NCAtIEc0AhABB2SbCLCn/n3WVKjy9Cn2MAsGCWCGSAFlAwQCAaCC
 # AT0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMjQw
-# NzAxMTg1NzA5WjArBgkqhkiG9w0BCTQxHjAcMAsGCWCGSAFlAwQCAaENBgkqhkiG
-# 9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQg9AQ18yrtuCF7UaK9FYvVKMA2XzibeA67
-# e1okt8yyOrowgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGOMIGLBBRE05OczRuIf4Z6
+# NzAxMTkwODA2WjArBgkqhkiG9w0BCTQxHjAcMAsGCWCGSAFlAwQCAaENBgkqhkiG
+# 9w0BAQsFADAvBgkqhkiG9w0BCQQxIgQgC5ySDNFuXoDBKxKV1lpCnW4R8shcBT0y
+# KFR3nztCeGAwgaQGCyqGSIb3DQEJEAIMMYGUMIGRMIGOMIGLBBRE05OczRuIf4Z6
 # zNqB7K8PZfzSWTBzMF+kXTBbMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFs
 # U2lnbiBudi1zYTExMC8GA1UEAxMoR2xvYmFsU2lnbiBUaW1lc3RhbXBpbmcgQ0Eg
 # LSBTSEEzODQgLSBHNAIQAQdkmwiwp/591lSo8vQp9jANBgkqhkiG9w0BAQsFAASC
-# AYAXT5O3IzQIOG2epZHv5OUT2qy9D7J/Q9/CjvYjslb8DK8vb/UC6GlyFze/el+a
-# cH0g0soRpzishaUc0BuZ5m611VwZHUZJXn5vX8ZmxveO2hvV3uiDaKjIyCfSAaq8
-# Lbfh/NxR4g1Dw1DOjEcNnLAjmarxUBk2R1Ei0s4E2+5uGXhz70R8EIWicL190STb
-# e7xXuPtm2nVjfgnE8CfsU838BEAGY6C6zOTss6jibVYRI5EkOJhLsYhc+cBjNmG6
-# otye7Qd+Hw4ZrbPPOk7JG+zDl1vNU29lXV17I0khfKJXHSgr2UyF/PnCN0k/ygMF
-# tmPH9F2la2epHN4qIs75G+kPcAw4iat2kU58JEsJ8Kigv6yzR4IXpFInTJNiyLPX
-# bx9CR/0lzsJPOd5KmhPLwsbjFJdnCeLD8Sq6Frpbf3HUgXTvqoItaeqWuFQs7xTh
-# CY77rkGS9jiyNgc5vaHPo2uxJrP4NT9fTWnO0r02i3wCWhc7AiNgsdtkBbIr6JK6
-# fbg=
+# AYAAp9eDPS/11RP/gzQ/M/TmPsluLzvlXLgHtZM8AuvBJb/XAfWYkE6NTfed0DZf
+# loA2LzADA14kpmXSpt7VaXFWvugNrwqRVkwtZHIl5m+S0NytjpF5fGMbr5MuMPaV
+# DyVdt8RlNdrOiyxo9s4rAMXn+ZrsED84LXGiaS9SdlTuAumZYLdsk6hsNSoph89Z
+# FcoZ7wNt0ZYx6bPXXjkfyIhfnWlG8/jkxCvyLNlImcdg3hbueTFLV36VpFybh+VY
+# ly/3Pz/RA6k1SQWXS/wA4qWUvuLevh72u66w0GR0v7dqAnOCW/ZXUu61lLzQev7p
+# pt/FtGUVSsyEXkWFOoV5/wiQxbBrJLoGJW6b+bMF/Q960aeQireWOPAH1FNumrCP
+# fdnMyAK2mrXHMS+E8vBiSR+2+5t51qFmv/o9QGWieYj6N1JpMT/+pA/X2VqtOAa8
+# 72PVoLgXcTpfpF6MFwJKLSRkziJE6HPFVMjqmFflR7uaJlntR3K72gA0EUVw2uZu
+# mVo=
 # SIG # End signature block
