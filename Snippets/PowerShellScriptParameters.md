@@ -8,7 +8,7 @@ param
 	[Parameter(Mandatory = $true,
 			   Position = 1,
 			   HelpMessage = 'Please specify a valid Windows folder path')]
-	[ValidatePattern('^([a-zA-Z]:\\)([^\\/:*?<>"|]+\\)*[^\\/:*?<>"|\s]+$')] # regex pattern to ensure the end user provides a folder path matching common Windows folder path convention
+	[ValidatePattern('^([a-zA-Z]:\\)([^\\/:*?<>"|]+\\)*[^\\/:*?<>"|\s]+$')]
 	[String]$path,
 	[Parameter(Mandatory = $true,
 			   Position = 2,
@@ -23,7 +23,8 @@ param
 	[Parameter(Position = 4,
 			   HelpMessage = 'This parameter is looking for only a positive integer')]
 	[ValidateRange("Positive")]
-	[int]$PositiveNumberOnly
+	[int]$PositiveNumberOnly,
+	[string]$NotMandatoryOrPositional # This parameter is not mandatory or positional, compared to the rest of the parameters
 )
 ```  
   
