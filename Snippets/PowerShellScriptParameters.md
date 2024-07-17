@@ -7,17 +7,23 @@ param
 (
 	[Parameter(Mandatory = $true,
 			   Position = 1,
-			   HelpMessage = 'Please specify the folder that...')]
-	[String]$variableName1,
+			   HelpMessage = 'Please specify a valid Windows folder path')]
+	[ValidatePattern('^([a-zA-Z]:\\)([^\\/:*?<>"|]+\\)*[^\\/:*?<>"|\s]+$')] # regex pattern to ensure the end user provides a folder path matching common Windows folder path convention
+	[String]$path,
 	[Parameter(Mandatory = $true,
 			   Position = 2,
-			   HelpMessage = 'Please specify the output directory for...')]
-	[String]$variableName2,
+			   HelpMessage = 'This is a parameter that is looking for a case non-specific set of values, and nothing else')]
+	[ValidateSet('thing1', 'thing2', 'thing3', 'thing4', IgnoreCase = $true)]
+	[String]$SetOfValues,
 	[Parameter(Mandatory = $true,
 			   Position = 3,
-			   HelpMessage = 'Choose the number of...')]
+			   HelpMessage = 'This is an example of a parameter that needs a number between 1 and 10')]
 	[ValidateRange(1, 10)]
-	[String]$variableName3 = '3'
+	[int]$Number = '3',
+	[Parameter(Position = 4,
+			   HelpMessage = 'This parameter is looking for only a positive integer')]
+	[ValidateRange("Positive")]
+	[int]$PositiveNumberOnly
 )
 ```  
   
