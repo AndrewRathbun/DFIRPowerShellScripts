@@ -128,7 +128,7 @@ Set-Location -Path $OutputPath
 Start-Process -Wait -NoNewWindow "esentutl.exe" -argumentlist "/r sru /i"
 
 # Execute this command esentutl.exe /p SRUDB.dat
-$Prog = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $OutputPath\SRUDB.dat" -PassThru
+$Prog = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $OutputPath\SRUDB.dat /o" -PassThru
 $count = 0
 $window = $false
 $wshell = New-Object -ComObject wscript.shell;

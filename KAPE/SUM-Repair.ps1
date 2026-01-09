@@ -105,8 +105,8 @@ Get-ChildItem $workingSUM -Recurse | ForEach-Object {
 }
 
 # Execute this command esentutl.exe /p Current.mdb
-Write-Host (Get-Date).ToString() "| Running esentutl.exe -argumentlist /p $workingSUM\Current.mdb -PassThru"
-$currentProg = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $workingSUM\Current.mdb" -PassThru
+Write-Host (Get-Date).ToString() "| Running esentutl.exe -argumentlist /p $workingSUM\Current.mdb /o -PassThru"
+$currentProg = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $workingSUM\Current.mdb /o" -PassThru
 $count = 0
 $window = $false
 $wshell = New-Object -ComObject wscript.shell;
@@ -125,8 +125,8 @@ do { Start-Sleep 1 }
 while (Get-Process -Id $currentProg.Id -Ea SilentlyContinue)
 
 # Execute this command esentutl.exe /p SystemIdentity.mdb
-Write-Host (Get-Date).ToString() "| Running esentutl.exe -argumentlist /p $workingSUM\SystemIdentity.mdb -PassThru"
-$siProg = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $workingSUM\SystemIdentity.mdb" -PassThru
+Write-Host (Get-Date).ToString() "| Running esentutl.exe -argumentlist /p $workingSUM\SystemIdentity.mdb /o -PassThru"
+$siProg = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $workingSUM\SystemIdentity.mdb /o" -PassThru
 $count = 0
 $window = $false
 $wshell = New-Object -ComObject wscript.shell;
@@ -147,8 +147,8 @@ while (Get-Process -Id $siProg.Id -Ea SilentlyContinue)
 # For each file found
 Get-ChildItem | Where-Object { $_.Name -match '^(\{[-A-Z0-9]+?\})\.mdb' } | ForEach-Object{
 	# Execute this command esentutl.exe /p "{<GUID>}.mdb"
-	Write-Host (Get-Date).ToString() "| Running esentutl.exe -argumentlist /p $workingSUM\$_ -PassThru"
-	$Prog = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $workingSUM\$_" -PassThru
+	Write-Host (Get-Date).ToString() "| Running esentutl.exe -argumentlist /p $workingSUM\$_ /o -PassThru"
+	$Prog = Start-Process -NoNewWindow "esentutl.exe" -argumentlist "/p $workingSUM\$_ /o" -PassThru
 	$count = 0
 	$window = $false
 	$wshell = New-Object -ComObject wscript.shell;
